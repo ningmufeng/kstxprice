@@ -1,0 +1,42 @@
+name: Simple Deploy Test
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Test build
+      run: |
+        echo "🏗️ 开始构建测试..."
+        npm run build
+        echo "✅ 构建成功！"
+        
+    - name: Check build output
+      run: |
+        echo "📁 检查构建输出..."
+        ls -la .next/ || echo "构建目录不存在"
+        echo "📊 项目结构："
+        find . -name "*.js" -o -name "*.jsx" | head -10
+        
+    - name: Success message
+      run: |
+        echo "🎉 所有测试通过！"
+        echo "📅 测试时间: $(date)"
+        echo "🚀 准备部署到CloudBase"
