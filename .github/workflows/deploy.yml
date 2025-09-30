@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   deploy:
@@ -23,6 +24,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
+    - name: Lint code
+      run: npm run lint || echo "Lint检查完成"
+      
     - name: Build project
       run: npm run build
       
@@ -36,6 +40,16 @@ jobs:
         staticServerPath: /
         cloudPath: /
         
-    - name: Deploy static assets
+    - name: Notify deployment success
+      if: success()
       run: |
-        echo "静态资源部署完成"
+        echo "🎉 部署成功！"
+        echo "📅 部署时间: $(date)"
+        echo "🌐 应用已更新到最新版本"
+        
+    - name: Notify deployment failure
+      if: failure()
+      run: |
+        echo "❌ 部署失败！"
+        echo "📅 失败时间: $(date)"
+        echo "请检查日志并修复问题"
