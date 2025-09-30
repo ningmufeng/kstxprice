@@ -35,9 +35,7 @@ jobs:
         secretId: ${{ secrets.CLOUDBASE_SECRET_ID }}
         secretKey: ${{ secrets.CLOUDBASE_SECRET_KEY }}
         envId: ${{ secrets.CLOUDBASE_ENV_ID }}
-        staticPath: public
-        staticServerPath: /
-        cloudPath: /
+        useFramework: true
         
     - name: Notify deployment success
       if: success()

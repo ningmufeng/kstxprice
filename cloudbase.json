@@ -1,16 +1,11 @@
 {
   "version": "2.0",
-  "envId": "your-env-id",
+  "envId": "cloud1-7gb9wc1q80bad9f3",
   "framework": {
-    "name": "next",
+    "name": "website",
     "config": {
-      "buildCommand": "npm run build",
-      "outputDir": ".next",
-      "installCommand": "npm install"
+      "outputDir": "public"
     }
   },
-  "functions": [],
-  "storage": {
-    "bucket": "kstxprice-assets"
-  }
+  "functions": []
 }

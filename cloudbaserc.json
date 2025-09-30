@@ -1,0 +1,24 @@
+{
+  "version": "2.0",
+  "envId": "cloud1-7gb9wc1q80bad9f3",
+  "framework": {
+    "name": "website",
+    "plugins": {
+      "website": {
+        "use": "@cloudbase/framework-plugin-website",
+        "inputs": {
+          "installCommand": "",
+          "buildCommand": "",
+          "outputPath": "public",
+          "cloudPath": "/",
+          "ignore": [
+            "**/node_modules/**",
+            "**/.git/**"
+          ]
+        }
+      }
+    }
+  }
+}
+
+
