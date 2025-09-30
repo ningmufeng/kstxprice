@@ -9,7 +9,6 @@ import { Smartphone, Laptop, Upload, Camera, FileText } from 'lucide-react';
 import { FileUploader } from '@/components/FileUploader';
 // @ts-ignore;
 import { ImportProgress } from '@/components/ImportProgress';
-
 // 由于在CloudBase Builder中运行时可能无法解析本地模块，
 // 这里内置一个 XLSX 解析的兜底实现，并在运行时按需加载 CDN
 // @ts-ignore
@@ -25,7 +24,7 @@ const ensureXLSX = async () => {
 };
 
 // @ts-ignore
-const validateExcelFile = file => {
+const validateExcelFile = (file) => {
   if (!file) return false;
   const name = (file.name || '').toLowerCase();
   const ext = name.split('.').pop();
@@ -34,26 +33,22 @@ const validateExcelFile = file => {
 };
 
 // @ts-ignore
-const parseExcelFile = async file => {
+const parseExcelFile = async (file) => {
   await ensureXLSX();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = (e) => {
       try {
         // @ts-ignore
         const XLSX = window.XLSX;
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {
-          type: 'array'
-        });
+        const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-          header: 1
-        });
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         const headers = jsonData[0] || [];
         const rows = jsonData.slice(1);
-        const parsed = rows.map(row => {
+        const parsed = rows.map((row) => {
           const rowData = {};
           headers.forEach((header, colIndex) => {
             if (header && row[colIndex] !== undefined) {
@@ -83,6 +78,7 @@ const parseExcelFile = async file => {
     reader.readAsArrayBuffer(file);
   });
 };
+
 export default function DataImport(props) {
   const {
     $w
@@ -110,6 +106,7 @@ export default function DataImport(props) {
       });
       return;
     }
+
     setSelectedFile(file);
     try {
       const data = await parseExcelFile(file);
@@ -148,19 +145,11 @@ export default function DataImport(props) {
           params: {
             filter: {
               where: {
-                $and: [{
-                  brand: {
-                    $eq: item.brand
-                  }
-                }, {
-                  category: {
-                    $eq: item.category
-                  }
-                }, {
-                  model: {
-                    $eq: item.model
-                  }
-                }]
+                $and: [
+                  { brand: { $eq: item.brand } },
+                  { category: { $eq: item.category } },
+                  { model: { $eq: item.model } }
+                ]
               }
             },
             pageSize: 1
@@ -185,7 +174,11 @@ export default function DataImport(props) {
                 brand: item.brand,
                 category: item.category,
                 model: item.model,
-                price: Number(item.price),
+                // 价格清洗：无效/<=0 统一写 0，前端展示为“电询”
+                price: (() => {
+                  const n = Number(item.price);
+                  return Number.isFinite(n) && n > 0 ? n : 0;
+                })(),
                 updatedAtText: item.updatedAtText || new Date().toLocaleDateString()
               }
             }

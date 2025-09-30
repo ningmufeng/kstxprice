@@ -41,12 +41,15 @@ export function PriceTable({
         <div className="p-3 font-semibold text-right">价格</div>
       </div>
       <div className="divide-y divide-gray-100">
-        {data.map((item, index) => <div key={item._id || index} className="grid grid-cols-[1fr_100px] hover:bg-gray-50">
+        {data.map((item, index) => {
+        const n = Number(item.price);
+        const isInvalid = !Number.isFinite(n) || n <= 0;
+        return <div key={item._id || index} className="grid grid-cols-[1fr_100px] hover:bg-gray-50">
             <div className="p-3">{item.model || `型号 ${index + 1}`}</div>
-            <div className="p-3 text-right font-medium text-green-600">
-              ¥{Number(item.price).toLocaleString()}
+            <div className={`p-3 text-right font-medium ${isInvalid ? 'text-gray-500' : 'text-green-600'}`}>
+              {isInvalid ? '电询' : `¥${n.toLocaleString()}`}
             </div>
-          </div>)}
+          </div>})}
       </div>
     </div>;
 }
