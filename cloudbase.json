@@ -1,0 +1,16 @@
+{
+  "version": "2.0",
+  "envId": "your-env-id",
+  "framework": {
+    "name": "next",
+    "config": {
+      "buildCommand": "npm run build",
+      "outputDir": ".next",
+      "installCommand": "npm install"
+    }
+  },
+  "functions": [],
+  "storage": {
+    "bucket": "kstxprice-assets"
+  }
+}

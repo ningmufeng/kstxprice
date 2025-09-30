@@ -1,0 +1,36 @@
+{
+  "name": "kstxprice",
+  "version": "1.0.0",
+  "description": "石家庄旷世唐朵通讯报价管理系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "deploy": "cloudbase deploy"
+  },
+  "dependencies": {
+    "next": "^13.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "xlsx": "^0.18.5",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^13.0.0",
+    "typescript": "^4.9.0"
+  },
+  "keywords": [
+    "手机报价",
+    "Excel导入",
+    "CloudBase",
+    "微搭"
+  ],
+  "author": "您的名字",
+  "license": "MIT"
+}

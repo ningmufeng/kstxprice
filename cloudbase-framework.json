@@ -1,0 +1,31 @@
+{
+  "name": "kstxprice",
+  "version": "1.0.0",
+  "description": "石家庄旷世唐朵通讯报价管理系统",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "npm run dev",
+    "build": "npm run build",
+    "deploy": "npm run deploy"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5",
+    "lucide-react": "^0.263.1"
+  },
+  "cloudbase": {
+    "framework": "next",
+    "buildCommand": "npm run build",
+    "outputDir": ".next",
+    "installCommand": "npm install",
+    "envVariables": {
+      "NODE_ENV": "production"
+    },
+    "functions": [
+      {
+        "name": "excel-parser",
+        "path": "functions/excel-parser",
+        "runtime": "Nodejs16.18"
+      }
+    ]
+  }
+}
