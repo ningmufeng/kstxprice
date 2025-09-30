@@ -9,9 +9,80 @@ import { Smartphone, Laptop, Upload, Camera, FileText } from 'lucide-react';
 import { FileUploader } from '@/components/FileUploader';
 // @ts-ignore;
 import { ImportProgress } from '@/components/ImportProgress';
-// @ts-ignore;
-import { excelParser } from '@/components/ExcelParser';
 
+// 由于在CloudBase Builder中运行时可能无法解析本地模块，
+// 这里内置一个 XLSX 解析的兜底实现，并在运行时按需加载 CDN
+// @ts-ignore
+const ensureXLSX = async () => {
+  if (typeof window !== 'undefined' && window.XLSX) return;
+  await new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('XLSX加载失败'));
+    document.head.appendChild(script);
+  });
+};
+
+// @ts-ignore
+const validateExcelFile = file => {
+  if (!file) return false;
+  const name = (file.name || '').toLowerCase();
+  const ext = name.split('.').pop();
+  const type = (file.type || '').toLowerCase();
+  return ['xlsx', 'xls'].includes(ext) || type.includes('spreadsheet') || type.includes('excel');
+};
+
+// @ts-ignore
+const parseExcelFile = async file => {
+  await ensureXLSX();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        // @ts-ignore
+        const XLSX = window.XLSX;
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {
+          type: 'array'
+        });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+          header: 1
+        });
+        const headers = jsonData[0] || [];
+        const rows = jsonData.slice(1);
+        const parsed = rows.map(row => {
+          const rowData = {};
+          headers.forEach((header, colIndex) => {
+            if (header && row[colIndex] !== undefined) {
+              const headerStr = String(header).trim().toLowerCase();
+              if (headerStr.includes('品牌') || headerStr.includes('brand')) {
+                rowData.brand = String(row[colIndex]).trim();
+              } else if (headerStr.includes('分类') || headerStr.includes('category')) {
+                rowData.category = String(row[colIndex]).trim();
+              } else if (headerStr.includes('型号') || headerStr.includes('model')) {
+                rowData.model = String(row[colIndex]).trim();
+              } else if (headerStr.includes('价格') || headerStr.includes('price')) {
+                const n = parseFloat(row[colIndex]);
+                rowData.price = Number.isFinite(n) ? n : 0;
+              } else if (headerStr.includes('更新') || headerStr.includes('date')) {
+                rowData.updatedAtText = String(row[colIndex]).trim();
+              }
+            }
+          });
+          return rowData;
+        }).filter(item => item.brand && item.category && item.model);
+        resolve(parsed);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('文件读取失败'));
+    reader.readAsArrayBuffer(file);
+  });
+};
 export default function DataImport(props) {
   const {
     $w
@@ -31,7 +102,7 @@ export default function DataImport(props) {
   });
   const handleFileSelect = useCallback(async file => {
     // 验证文件格式
-    if (!excelParser.validateFile(file)) {
+    if (!validateExcelFile(file)) {
       toast({
         title: '文件格式错误',
         description: '请选择Excel文件(.xlsx或.xls格式)',
@@ -39,10 +110,9 @@ export default function DataImport(props) {
       });
       return;
     }
-
     setSelectedFile(file);
     try {
-      const data = await excelParser.parseFile(file);
+      const data = await parseExcelFile(file);
       setImportData(data);
       toast({
         title: '文件解析成功',
@@ -78,11 +148,19 @@ export default function DataImport(props) {
           params: {
             filter: {
               where: {
-                $and: [
-                  { brand: { $eq: item.brand } },
-                  { category: { $eq: item.category } },
-                  { model: { $eq: item.model } }
-                ]
+                $and: [{
+                  brand: {
+                    $eq: item.brand
+                  }
+                }, {
+                  category: {
+                    $eq: item.category
+                  }
+                }, {
+                  model: {
+                    $eq: item.model
+                  }
+                }]
               }
             },
             pageSize: 1
