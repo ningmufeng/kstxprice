@@ -4,6 +4,10 @@ import React, { useState, useCallback } from 'react';
 import { useToast } from '@/components/ui';
 // @ts-ignore;
 import { Upload, Cloud, CheckCircle, XCircle, Loader } from 'lucide-react';
+// @ts-ignore;
+import { excelParser } from '@/components/ExcelParser';
+// @ts-ignore;
+import { ExcelTemplate } from '@/components/ExcelTemplate';
 
 export default function AdminUpload(props) {
   const {
@@ -21,25 +25,6 @@ export default function AdminUpload(props) {
     failed: 0,
     errors: []
   });
-  const handleFileSelect = useCallback(file => {
-    if (file) {
-      const extension = file.name.split('.').pop().toLowerCase();
-      if (['xlsx', 'xls'].includes(extension)) {
-        setSelectedFile(file);
-        toast({
-          title: '文件已选择',
-          description: `准备导入: ${file.name}`,
-          variant: 'default'
-        });
-      } else {
-        toast({
-          title: '文件格式错误',
-          description: '请选择Excel文件(.xlsx或.xls格式)',
-          variant: 'destructive'
-        });
-      }
-    }
-  }, [toast]);
   const handleDragOver = useCallback(e => {
     e.preventDefault();
     e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
@@ -63,83 +48,180 @@ export default function AdminUpload(props) {
     }
   }, [handleFileSelect]);
 
-  // 模拟Excel解析和导入函数
+  // 文件选择处理
+  const handleFileSelect = useCallback(async (file) => {
+    if (file) {
+      // 验证文件格式
+      if (!excelParser.validateFile(file)) {
+        toast({
+          title: '文件格式错误',
+          description: '请选择Excel文件(.xlsx或.xls格式)',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      setSelectedFile(file);
+      
+      try {
+        // 获取文件预览
+        const preview = await excelParser.getPreview(file, 3);
+        toast({
+          title: '文件已选择',
+          description: `准备导入: ${file.name} (预览到 ${preview.length} 条数据)`,
+          variant: 'default'
+        });
+      } catch (error) {
+        toast({
+          title: '文件预览失败',
+          description: '无法预览Excel文件: ' + error.message,
+          variant: 'destructive'
+        });
+      }
+    }
+  }, [toast]);
+
+  // Excel解析和导入函数
   const importExcelData = useCallback(async () => {
     if (!selectedFile) return;
     setIsUploading(true);
     setUploadProgress(0);
 
-    // 模拟解析Excel数据（实际项目中需要集成xlsx库）
-    const mockData = [{
-      brand: '苹果',
-      category: '手机',
-      model: 'iPhone 16',
-      price: 6999,
-      updatedAtText: '2025-09-10'
-    }, {
-      brand: '华为',
-      category: '手机',
-      model: 'Mate 70',
-      price: 5999,
-      updatedAtText: '2025-09-10'
-    }, {
-      brand: '小米',
-      category: '手机',
-      model: '15 Pro',
-      price: 4999,
-      updatedAtText: '2025-09-10'
-    }];
-    const errors = [];
-    let successCount = 0;
-
-    // 批量导入数据
-    for (let i = 0; i < mockData.length; i++) {
-      try {
-        await $w.cloud.callDataSource({
-          dataSourceName: 'PhonePrice',
-          methodName: 'wedaCreateV2',
-          params: {
-            data: mockData[i]
-          }
+    try {
+      // 解析Excel文件
+      const parsedData = await excelParser.parseFile(selectedFile);
+      
+      if (parsedData.length === 0) {
+        toast({
+          title: '解析失败',
+          description: 'Excel文件中没有找到有效的数据行',
+          variant: 'destructive'
         });
-        successCount++;
-      } catch (error) {
-        errors.push(`第${i + 1}行导入失败: ${error.message}`);
+        setIsUploading(false);
+        return;
       }
 
-      // 更新进度
-      setUploadProgress(Math.round((i + 1) / mockData.length * 100));
-      await new Promise(resolve => setTimeout(resolve, 200)); // 模拟处理延迟
-    }
-    setImportResult({
-      total: mockData.length,
-      success: successCount,
-      failed: errors.length,
-      errors
-    });
-    setIsUploading(false);
+      // 添加当前日期到每条数据
+      const currentDate = new Date().toLocaleDateString('zh-CN');
+      const dataWithDate = parsedData.map(item => ({
+        ...item,
+        updatedAtText: currentDate
+      }));
+      const errors = [];
+      let successCount = 0;
 
-    // 显示导入结果
-    if (errors.length === 0) {
+      // 批量导入数据
+      for (let i = 0; i < dataWithDate.length; i++) {
+        try {
+          // 检查是否已存在相同的数据
+          const existingData = await $w.cloud.callDataSource({
+            dataSourceName: 'PhonePrice',
+            methodName: 'wedaGetRecordsV2',
+            params: {
+              filter: {
+                where: {
+                  $and: [
+                    { brand: { $eq: dataWithDate[i].brand } },
+                    { category: { $eq: dataWithDate[i].category } },
+                    { model: { $eq: dataWithDate[i].model } }
+                  ]
+                }
+              },
+              pageSize: 1
+            }
+          });
+
+          // 如果数据已存在，跳过导入
+          if (existingData.records && existingData.records.length > 0) {
+            console.log(`数据已存在，跳过: ${dataWithDate[i].brand} ${dataWithDate[i].model}`);
+            successCount++; // 也算作成功
+          } else {
+            // 数据不存在，执行导入
+            await $w.cloud.callDataSource({
+              dataSourceName: 'PhonePrice',
+              methodName: 'wedaCreateV2',
+              params: {
+                data: dataWithDate[i]
+              }
+            });
+            successCount++;
+          }
+        } catch (error) {
+          errors.push(`第${i + 1}行导入失败: ${error.message}`);
+        }
+
+        // 更新进度
+        setUploadProgress(Math.round((i + 1) / dataWithDate.length * 100));
+        await new Promise(resolve => setTimeout(resolve, 200)); // 模拟处理延迟
+      }
+      setImportResult({
+        total: dataWithDate.length,
+        success: successCount,
+        failed: errors.length,
+        errors
+      });
+      setIsUploading(false);
+
+      // 显示导入结果
+      if (errors.length === 0) {
+        toast({
+          title: '导入成功',
+          description: `成功导入 ${successCount} 条数据`,
+          variant: 'default'
+        });
+      } else {
+        toast({
+          title: '导入完成',
+          description: `成功 ${successCount} 条，失败 ${errors.length} 条`,
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Excel解析失败:', error);
       toast({
-        title: '导入成功',
-        description: `成功导入 ${successCount} 条数据`,
+        title: '解析失败',
+        description: '无法解析Excel文件: ' + error.message,
+        variant: 'destructive'
+      });
+      setIsUploading(false);
+    }
+  }, [selectedFile, $w, toast]);
+
+  // 下载Excel模板
+  const downloadTemplate = useCallback(() => {
+    try {
+      ExcelTemplate.downloadTemplate();
+      toast({
+        title: '模板下载成功',
+        description: 'Excel模板文件已开始下载',
         variant: 'default'
       });
-    } else {
+    } catch (error) {
       toast({
-        title: '导入完成',
-        description: `成功 ${successCount} 条，失败 ${errors.length} 条`,
+        title: '下载失败',
+        description: '无法下载模板文件: ' + error.message,
         variant: 'destructive'
       });
     }
-  }, [selectedFile, $w, toast]);
+  }, [toast]);
+
   return <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-2xl mx-auto">
         {/* 页面标题 */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">数据导入管理</h1>
-          <p className="text-gray-600">上传Excel文件导入手机报价数据</p>
+          <p className="text-gray-600 mb-4">上传Excel文件导入手机报价数据</p>
+          
+          {/* 模板下载按钮 */}
+          <div className="flex justify-center">
+            <button
+              onClick={downloadTemplate}
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              下载Excel模板
+            </button>
+          </div>
         </div>
 
         {/* 上传区域 */}
@@ -222,6 +304,18 @@ export default function AdminUpload(props) {
                 </div>
               </div>}
           </div>}
+
+        {/* Excel格式说明 */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+          <h3 className="font-medium text-blue-900 mb-2">Excel格式说明</h3>
+          <div className="text-sm text-blue-800 space-y-1">
+            <p>• 第一行必须是标题行，包含：品牌、分类、型号、价格</p>
+            <p>• 从第二行开始是数据行</p>
+            <p>• 品牌、分类、型号不能为空</p>
+            <p>• 价格必须是数字</p>
+            <p>• 支持.xlsx和.xls格式</p>
+          </div>
+        </div>
       </div>
     </div>;
 }

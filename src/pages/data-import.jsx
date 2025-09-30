@@ -9,36 +9,9 @@ import { Smartphone, Laptop, Upload, Camera, FileText } from 'lucide-react';
 import { FileUploader } from '@/components/FileUploader';
 // @ts-ignore;
 import { ImportProgress } from '@/components/ImportProgress';
+// @ts-ignore;
+import { excelParser } from '@/components/ExcelParser';
 
-// 模拟Excel解析函数（实际项目中需要集成xlsx库）
-const parseExcelFile = async file => {
-  return new Promise(resolve => {
-    // 模拟解析过程
-    setTimeout(() => {
-      // 模拟Excel数据格式
-      const mockData = [{
-        brand: '苹果',
-        category: '手机',
-        model: 'iPhone 16',
-        price: 6999,
-        updatedAtText: '2025-09-10'
-      }, {
-        brand: '华为',
-        category: '手机',
-        model: 'Mate 70',
-        price: 5999,
-        updatedAtText: '2025-09-10'
-      }, {
-        brand: '小米',
-        category: '手机',
-        model: '15 Pro',
-        price: 4999,
-        updatedAtText: '2025-09-10'
-      }];
-      resolve(mockData);
-    }, 1000);
-  });
-};
 export default function DataImport(props) {
   const {
     $w
@@ -57,9 +30,19 @@ export default function DataImport(props) {
     errors: []
   });
   const handleFileSelect = useCallback(async file => {
+    // 验证文件格式
+    if (!excelParser.validateFile(file)) {
+      toast({
+        title: '文件格式错误',
+        description: '请选择Excel文件(.xlsx或.xls格式)',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setSelectedFile(file);
     try {
-      const data = await parseExcelFile(file);
+      const data = await excelParser.parseFile(file);
       setImportData(data);
       toast({
         title: '文件解析成功',
@@ -69,7 +52,7 @@ export default function DataImport(props) {
     } catch (error) {
       toast({
         title: '解析失败',
-        description: '无法解析Excel文件，请检查格式',
+        description: '无法解析Excel文件，请检查格式: ' + error.message,
         variant: 'destructive'
       });
     }
@@ -88,24 +71,53 @@ export default function DataImport(props) {
     for (let i = 0; i < importData.length; i++) {
       const item = importData[i];
       try {
-        await $w.cloud.callDataSource({
+        // 检查是否已存在相同的数据
+        const existingData = await $w.cloud.callDataSource({
           dataSourceName: 'PhonePrice',
-          methodName: 'wedaCreateV2',
+          methodName: 'wedaGetRecordsV2',
           params: {
-            data: {
-              brand: item.brand,
-              category: item.category,
-              model: item.model,
-              price: Number(item.price),
-              updatedAtText: item.updatedAtText || new Date().toLocaleDateString()
-            }
+            filter: {
+              where: {
+                $and: [
+                  { brand: { $eq: item.brand } },
+                  { category: { $eq: item.category } },
+                  { model: { $eq: item.model } }
+                ]
+              }
+            },
+            pageSize: 1
           }
         });
-        setImportProgress(prev => ({
-          ...prev,
-          progress: prev.progress + 1,
-          successCount: prev.successCount + 1
-        }));
+
+        // 如果数据已存在，跳过导入
+        if (existingData.records && existingData.records.length > 0) {
+          console.log(`数据已存在，跳过: ${item.brand} ${item.model}`);
+          setImportProgress(prev => ({
+            ...prev,
+            progress: prev.progress + 1,
+            successCount: prev.successCount + 1
+          }));
+        } else {
+          // 数据不存在，执行导入
+          await $w.cloud.callDataSource({
+            dataSourceName: 'PhonePrice',
+            methodName: 'wedaCreateV2',
+            params: {
+              data: {
+                brand: item.brand,
+                category: item.category,
+                model: item.model,
+                price: Number(item.price),
+                updatedAtText: item.updatedAtText || new Date().toLocaleDateString()
+              }
+            }
+          });
+          setImportProgress(prev => ({
+            ...prev,
+            progress: prev.progress + 1,
+            successCount: prev.successCount + 1
+          }));
+        }
       } catch (error) {
         errors.push(`第${i + 1}行: ${error.message}`);
         setImportProgress(prev => ({
