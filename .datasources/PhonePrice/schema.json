@@ -1,0 +1,33 @@
+
+{
+  "name": "PhonePrice",
+  "title": "手机报价",
+  "schemas": [
+    {
+      "name": "brand",
+      "title": "品牌",
+      "type": "String"
+    },
+    {
+      "name": "category",
+      "title": "分类",
+      "type": "String"
+    },
+    {
+      "name": "model",
+      "title": "型号",
+      "type": "String"
+    },
+    {
+      "name": "price",
+      "title": "价格",
+      "type": "Number"
+    },
+    {
+      "name": "updatedAtText",
+      "title": "更新时间文本",
+      "type": "String"
+    }
+  ]
+}
+  
