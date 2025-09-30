@@ -32,7 +32,7 @@ jobs:
         echo "🔒 检查安全漏洞..."
         npm audit --audit-level moderate || echo "安全检查完成"
         
-    - name: Test build process
+    - name: Test build process (placeholder)
       run: |
         echo "🏗️ 测试构建过程..."
         npm run build

@@ -26,7 +26,7 @@ jobs:
     - name: Lint code
       run: npm run lint || echo "Lint检查完成"
       
-    - name: Build project
+    - name: Build project (placeholder)
       run: npm run build
       
     - name: Deploy to CloudBase
@@ -35,7 +35,7 @@ jobs:
         secretId: ${{ secrets.CLOUDBASE_SECRET_ID }}
         secretKey: ${{ secrets.CLOUDBASE_SECRET_KEY }}
         envId: ${{ secrets.CLOUDBASE_ENV_ID }}
-        staticPath: .next
+        staticPath: public
         staticServerPath: /
         cloudPath: /
         

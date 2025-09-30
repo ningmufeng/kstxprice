@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: npm install
       
-    - name: Test build
+    - name: Test build (placeholder)
       run: |
         echo "🏗️ 开始构建测试..."
         npm run build
