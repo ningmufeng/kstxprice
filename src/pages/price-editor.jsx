@@ -47,9 +47,9 @@ export default function PriceEditor(props) {
       }
     });
     if (modelKeyword) andConds.push({
+      // CloudBase 不支持 $options，请使用 $regex_ci 做不区分大小写匹配
       model: {
-        $regex: modelKeyword,
-        $options: 'i'
+        $regex_ci: modelKeyword
       }
     });
     return andConds.length > 0 ? {
@@ -105,7 +105,7 @@ export default function PriceEditor(props) {
         params: {
           filter: {
             where: {
-              _id: rec._id
+              _id: { $eq: rec._id }
             }
           },
           data: {
@@ -153,7 +153,7 @@ export default function PriceEditor(props) {
           params: {
             filter: {
               where: {
-                _id: rec._id
+                _id: { $eq: rec._id }
               }
             },
             data: {
