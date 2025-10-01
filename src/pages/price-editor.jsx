@@ -32,7 +32,8 @@ export default function PriceEditor(props) {
     setLoading(true);
     try {
       const params = {
-        select: { $master: true },
+        // 确保取到主字段及 _id
+        select: { $master: true, _id: true },
         orderBy: [{ updatedAt: 'desc' }],
         pageSize: 50,
         pageNumber: 1
@@ -64,11 +65,19 @@ export default function PriceEditor(props) {
     const valid = Number.isFinite(num) && num > 0;
     const priceToSave = valid ? num : 0; // 0 表示前端展示“电询”
     try {
+      // 组装 filter：优先用 _id，兜底用 三键（brand/category/model）
+      const where = rec._id ? { _id: { $eq: rec._id } } : {
+        $and: [
+          { brand: { $eq: rec.brand } },
+          { category: { $eq: rec.category } },
+          { model: { $eq: rec.model } }
+        ]
+      };
       await $w.cloud.callDataSource({
         dataSourceName: 'PhonePrice',
         methodName: 'wedaUpdateV2',
         params: {
-          filter: { where: { _id: rec._id } },
+          filter: { where },
           data: {
             price: priceToSave,
             updatedAtText: new Date().toLocaleDateString()
@@ -95,11 +104,18 @@ export default function PriceEditor(props) {
       const valid = Number.isFinite(num) && num > 0;
       const priceToSave = valid ? num : 0;
       try {
+        const where = rec._id ? { _id: { $eq: rec._id } } : {
+          $and: [
+            { brand: { $eq: rec.brand } },
+            { category: { $eq: rec.category } },
+            { model: { $eq: rec.model } }
+          ]
+        };
         await $w.cloud.callDataSource({
           dataSourceName: 'PhonePrice',
           methodName: 'wedaUpdateV2',
           params: {
-            filter: { where: { _id: rec._id } },
+            filter: { where },
             data: { price: priceToSave, updatedAtText: new Date().toLocaleDateString() }
           }
         });
