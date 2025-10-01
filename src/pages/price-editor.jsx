@@ -68,7 +68,7 @@ export default function PriceEditor(props) {
         dataSourceName: 'PhonePrice',
         methodName: 'wedaUpdateV2',
         params: {
-          _id: rec._id,
+          filter: { where: { _id: rec._id } },
           data: {
             price: priceToSave,
             updatedAtText: new Date().toLocaleDateString()
@@ -99,7 +99,7 @@ export default function PriceEditor(props) {
           dataSourceName: 'PhonePrice',
           methodName: 'wedaUpdateV2',
           params: {
-            _id: rec._id,
+            filter: { where: { _id: rec._id } },
             data: { price: priceToSave, updatedAtText: new Date().toLocaleDateString() }
           }
         });
