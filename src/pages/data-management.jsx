@@ -16,9 +16,9 @@ export default function DataManagement(props) {
     });
   };
   const navigateToEdit = () => {
-    // 这里可以跳转到数据编辑页面
+    // 跳转到价格编辑页面
     $w.utils.navigateTo({
-      pageId: 'phone-price',
+      pageId: 'price-editor',
       params: {}
     });
   };
