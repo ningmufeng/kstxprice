@@ -17,7 +17,8 @@ export default function PriceEditor(props) {
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
   const [modelKeyword, setModelKeyword] = useState('');
-  const [priceDate, setPriceDate] = useState(''); // updatedAtText 价格日期
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState({}); // _id -> price string
@@ -30,6 +31,15 @@ export default function PriceEditor(props) {
     price: '',
     updatedAtText: ''
   });
+
+  // 工具：获取当天 yyyy-mm-dd
+  const today = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
   const onPriceChange = (id, value) => {
     setEditing(prev => ({
       ...prev,
@@ -54,17 +64,33 @@ export default function PriceEditor(props) {
         $eq: category
       }
     });
-    if (priceDate) andConds.push({
-      updatedAtText: {
-        $eq: priceDate
-      }
-    });
     if (modelKeyword) andConds.push({
-      // CloudBase 不支持 $options，请使用 $regex_ci 做不区分大小写匹配
       model: {
         $regex_ci: modelKeyword
       }
     });
+
+    // 日期区间
+    if (startDate && endDate) {
+      andConds.push({
+        updatedAtText: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      });
+    } else if (startDate) {
+      andConds.push({
+        updatedAtText: {
+          $eq: startDate
+        }
+      });
+    } else if (endDate) {
+      andConds.push({
+        updatedAtText: {
+          $eq: endDate
+        }
+      });
+    }
     return andConds.length > 0 ? {
       where: {
         $and: andConds
@@ -103,17 +129,26 @@ export default function PriceEditor(props) {
     } finally {
       setLoading(false);
     }
-  }, [brand, category, modelKeyword, $w, toast]);
+  }, [brand, category, modelKeyword, startDate, endDate, $w, toast]);
+
+  // 首次加载默认当天
+  useEffect(() => {
+    const d = today();
+    setStartDate(d);
+    setEndDate(d);
+  }, []);
+
+  // 当 startDate/endDate 变化后自动刷新
   useEffect(() => {
     load();
-  }, []);
+  }, [startDate, endDate, load]);
   const saveOne = async rec => {
     const raw = editing[rec._id];
     const num = Number(raw);
     const valid = Number.isFinite(num) && num > 0;
     const priceToSave = valid ? num : 0;
     const dateEdited = editingDate[rec._id];
-    const dateToSave = dateEdited !== undefined ? dateEdited : rec.updatedAtText || new Date().toLocaleDateString();
+    const dateToSave = dateEdited !== undefined ? dateEdited : rec.updatedAtText || today();
     try {
       await $w.cloud.callDataSource({
         dataSourceName: 'PhonePrice',
@@ -157,15 +192,15 @@ export default function PriceEditor(props) {
       return;
     }
     setLoading(true);
-    let ok = 0;
-    let fail = 0;
+    let ok = 0,
+      fail = 0;
     for (const rec of targets) {
       const raw = editing[rec._id];
       const num = Number(raw);
       const valid = Number.isFinite(num) && num > 0;
       const priceToSave = valid ? num : 0;
       const dateEdited = editingDate[rec._id];
-      const dateToSave = dateEdited !== undefined ? dateEdited : rec.updatedAtText || new Date().toLocaleDateString();
+      const dateToSave = dateEdited !== undefined ? dateEdited : rec.updatedAtText || today();
       try {
         await $w.cloud.callDataSource({
           dataSourceName: 'PhonePrice',
@@ -220,7 +255,7 @@ export default function PriceEditor(props) {
             category: newRecord.category,
             model: newRecord.model,
             price: priceToSave,
-            updatedAtText: newRecord.updatedAtText || priceDate || new Date().toLocaleDateString()
+            updatedAtText: newRecord.updatedAtText || today()
           }
         }
       });
@@ -291,8 +326,12 @@ export default function PriceEditor(props) {
             <input value={modelKeyword} onChange={e => setModelKeyword(e.target.value)} placeholder="如：iPhone 16" className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
           </div>
           <div className="flex-1">
-            <label className="block text-sm text-gray-600 mb-1">价格日期</label>
-            <input type="date" value={priceDate} onChange={e => setPriceDate(e.target.value)} placeholder="YYYY-MM-DD" className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            <label className="block text-sm text-gray-600 mb-1">开始日期</label>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm text-gray-600 mb-1">结束日期</label>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
           </div>
           <div className="flex gap-2">
             <Button onClick={load} className="px-4 py-2 flex items-center justify-center">
@@ -301,7 +340,7 @@ export default function PriceEditor(props) {
             <Button onClick={() => {
             setNewRecord(n => ({
               ...n,
-              updatedAtText: priceDate || new Date().toLocaleDateString()
+              updatedAtText: today()
             }));
             setShowAddForm(true);
           }} className="px-4 py-2 flex items-center justify-center bg-green-600 hover:bg-green-700">
@@ -337,7 +376,7 @@ export default function PriceEditor(props) {
             </div>
           </div>}
 
-        {/* 数据表格 - 增加横向滚动 */}
+        {/* 数据表格 - 横向滚动 */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <div className="min-w-[900px]">
