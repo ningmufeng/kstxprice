@@ -5,6 +5,7 @@ import DATA_MANAGEMENT from '../pages/data-management.jsx';
 import INDEX from '../pages/index.jsx';
 import PHONE_PRICE from '../pages/phone-price.jsx';
 import PRICE_EDITOR from '../pages/price-editor.jsx';
+import LOGIN from '../pages/login.jsx';
 export const routers = [{
   id: "admin-upload",
   component: ADMIN_UPLOAD
@@ -26,4 +27,7 @@ export const routers = [{
 }, {
   id: "price-editor",
   component: PRICE_EDITOR
+}, {
+  id: "login",
+  component: LOGIN
 }]
