@@ -21,8 +21,15 @@ export default function DataManagement(props) {
         dataSourceName: 'PhonePrice',
         methodName: 'wedaGetRecordsV2',
         params: {
-          select: { brand: true, category: true, updatedAt: true, updatedAtText: true },
-          orderBy: [{ updatedAt: 'desc' }],
+          select: {
+            brand: true,
+            category: true,
+            updatedAt: true,
+            updatedAtText: true
+          },
+          orderBy: [{
+            updatedAt: 'desc'
+          }],
           pageSize: 500,
           pageNumber: 1
         }
@@ -32,19 +39,25 @@ export default function DataManagement(props) {
       const brandSet = new Set();
       const categorySet = new Set();
       records.forEach(r => {
-        if (r.brand) brandSet.add(r.brand);
-        if (r.category) categorySet.add(r.category);
+        if (r?.brand) brandSet.add(r.brand);
+        if (r?.category) categorySet.add(r.category);
       });
       const last = records[0];
-      const lastUpdate = last ? (last.updatedAtText || new Date(last.updatedAt).toLocaleDateString('zh-CN')) : '--';
-      setStats({ total, brands: brandSet.size, categories: categorySet.size, lastUpdate });
+      const lastUpdate = last ? last.updatedAtText || new Date(last.updatedAt).toLocaleDateString('zh-CN') : '--';
+      setStats({
+        total,
+        brands: brandSet.size,
+        categories: categorySet.size,
+        lastUpdate
+      });
     } catch (e) {
-      // 保底显示，不打断页面
-      setStats(s => s);
+      // 静默失败，避免白屏
       console.error('加载统计失败', e);
     }
   };
-  useEffect(() => { loadStats(); }, []);
+  useEffect(() => {
+    loadStats();
+  }, []);
   const navigateToImport = () => {
     $w.utils.navigateTo({
       pageId: 'data-import',
@@ -52,7 +65,6 @@ export default function DataManagement(props) {
     });
   };
   const navigateToEdit = () => {
-    // 跳转到价格编辑页面
     $w.utils.navigateTo({
       pageId: 'price-editor',
       params: {}
