@@ -113,7 +113,7 @@ export default function PriceEditor(props) {
     const valid = Number.isFinite(num) && num > 0;
     const priceToSave = valid ? num : 0;
     const dateEdited = editingDate[rec._id];
-    const dateToSave = (dateEdited !== undefined ? dateEdited : (rec.updatedAtText || new Date().toLocaleDateString()));
+    const dateToSave = dateEdited !== undefined ? dateEdited : rec.updatedAtText || new Date().toLocaleDateString();
     try {
       await $w.cloud.callDataSource({
         dataSourceName: 'PhonePrice',
@@ -121,7 +121,9 @@ export default function PriceEditor(props) {
         params: {
           filter: {
             where: {
-              _id: { $eq: rec._id }
+              _id: {
+                $eq: rec._id
+              }
             }
           },
           data: {
@@ -163,7 +165,7 @@ export default function PriceEditor(props) {
       const valid = Number.isFinite(num) && num > 0;
       const priceToSave = valid ? num : 0;
       const dateEdited = editingDate[rec._id];
-      const dateToSave = (dateEdited !== undefined ? dateEdited : (rec.updatedAtText || new Date().toLocaleDateString()));
+      const dateToSave = dateEdited !== undefined ? dateEdited : rec.updatedAtText || new Date().toLocaleDateString();
       try {
         await $w.cloud.callDataSource({
           dataSourceName: 'PhonePrice',
@@ -171,7 +173,9 @@ export default function PriceEditor(props) {
           params: {
             filter: {
               where: {
-                _id: { $eq: rec._id }
+                _id: {
+                  $eq: rec._id
+                }
               }
             },
             data: {
@@ -288,19 +292,19 @@ export default function PriceEditor(props) {
           </div>
           <div className="flex-1">
             <label className="block text-sm text-gray-600 mb-1">价格日期</label>
-            <input
-              type="date"
-              value={priceDate}
-              onChange={e => setPriceDate(e.target.value)}
-              placeholder="YYYY-MM-DD"
-              className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <input type="date" value={priceDate} onChange={e => setPriceDate(e.target.value)} placeholder="YYYY-MM-DD" className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
           </div>
           <div className="flex gap-2">
             <Button onClick={load} className="px-4 py-2 flex items-center justify-center">
               <Search className="w-4 h-4 mr-2" /> 查询
             </Button>
-            <Button onClick={() => { setNewRecord(n => ({ ...n, updatedAtText: priceDate || new Date().toLocaleDateString() })); setShowAddForm(true); }} className="px-4 py-2 flex items-center justify-center bg-green-600 hover:bg-green-700">
+            <Button onClick={() => {
+            setNewRecord(n => ({
+              ...n,
+              updatedAtText: priceDate || new Date().toLocaleDateString()
+            }));
+            setShowAddForm(true);
+          }} className="px-4 py-2 flex items-center justify-center bg-green-600 hover:bg-green-700">
               <Plus className="w-4 h-4 mr-2" /> 添加
             </Button>
           </div>
@@ -333,47 +337,51 @@ export default function PriceEditor(props) {
             </div>
           </div>}
 
-        {/* 数据表格 */}
+        {/* 数据表格 - 增加横向滚动 */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="grid grid-cols-[140px_120px_1fr_140px_140px_120px_80px] bg-yellow-100 text-sm font-semibold">
-            <div className="p-3">品牌</div>
-            <div className="p-3">分类</div>
-            <div className="p-3">型号</div>
-            <div className="p-3">价格日期</div>
-            <div className="p-3 text-right">价格</div>
-            <div className="p-3 text-right">操作</div>
-            <div className="p-3 text-center">删除</div>
+          <div className="overflow-x-auto">
+            <div className="min-w-[900px]">
+              <div className="grid grid-cols-[140px_120px_1fr_140px_140px_120px_80px] bg-yellow-100 text-sm font-semibold">
+                <div className="p-3">品牌</div>
+                <div className="p-3">分类</div>
+                <div className="p-3">型号</div>
+                <div className="p-3">价格日期</div>
+                <div className="p-3 text-right">价格</div>
+                <div className="p-3 text-right">操作</div>
+                <div className="p-3 text-center">删除</div>
+              </div>
+              {loading ? <div className="p-4 text-gray-500">加载中...</div> : <div className="divide-y divide-gray-100">
+                  {records.length === 0 && <div className="p-6 text-center text-gray-500 text-sm">无匹配数据</div>}
+                  {records.map(rec => {
+                const current = editing[rec._id];
+                const displayValue = current !== undefined ? current : rec.price ?? '';
+                const currentDate = editingDate[rec._id];
+                const displayDate = currentDate !== undefined ? currentDate : rec.updatedAtText || '';
+                return <div key={rec._id} className="grid grid-cols-[140px_120px_1fr_140px_140px_120px_80px] items-center hover:bg-gray-50">
+                        <div className="p-3 text-sm text-gray-700">{rec.brand}</div>
+                        <div className="p-3 text-sm text-gray-700">{rec.category}</div>
+                        <div className="p-3 text-sm text-gray-900">{rec.model}</div>
+                        <div className="p-3">
+                          <input className="w-full border rounded px-2 py-1" type="date" value={displayDate} onChange={e => onDateChange(rec._id, e.target.value)} />
+                        </div>
+                        <div className="p-3">
+                          <input className="w-full border rounded px-2 py-1 text-right" placeholder="数字或留空=电询" value={displayValue} onChange={e => onPriceChange(rec._id, e.target.value)} inputMode="decimal" />
+                        </div>
+                        <div className="p-3 text-right">
+                          <Button onClick={() => saveOne(rec)} className="px-3 py-2 inline-flex items-center">
+                            <Save className="w-4 h-4 mr-1" /> 保存
+                          </Button>
+                        </div>
+                        <div className="p-3 text-center">
+                          <Button onClick={() => handleDelete(rec)} className="px-3 py-2 inline-flex items-center bg-red-600 hover:bg-red-700">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>;
+              })}
+                </div>}
+            </div>
           </div>
-          {loading ? <div className="p-4 text-gray-500">加载中...</div> : <div className="divide-y divide-gray-100">
-              {records.length === 0 && <div className="p-6 text-center text-gray-500 text-sm">无匹配数据</div>}
-              {records.map(rec => {
-            const current = editing[rec._id];
-            const displayValue = current !== undefined ? current : rec.price ?? '';
-            const currentDate = editingDate[rec._id];
-            const displayDate = currentDate !== undefined ? currentDate : (rec.updatedAtText || '');
-            return <div key={rec._id} className="grid grid-cols-[140px_120px_1fr_140px_140px_120px_80px] items-center hover:bg-gray-50">
-                    <div className="p-3 text-sm text-gray-700">{rec.brand}</div>
-                    <div className="p-3 text-sm text-gray-700">{rec.category}</div>
-                    <div className="p-3 text-sm text-gray-900">{rec.model}</div>
-                    <div className="p-3">
-                      <input className="w-full border rounded px-2 py-1" type="date" value={displayDate} onChange={e => onDateChange(rec._id, e.target.value)} />
-                    </div>
-                    <div className="p-3">
-                      <input className="w-full border rounded px-2 py-1 text-right" placeholder="数字或留空=电询" value={displayValue} onChange={e => onPriceChange(rec._id, e.target.value)} inputMode="decimal" />
-                    </div>
-                    <div className="p-3 text-right">
-                      <Button onClick={() => saveOne(rec)} className="px-3 py-2 inline-flex items-center">
-                        <Save className="w-4 h-4 mr-1" /> 保存
-                      </Button>
-                    </div>
-                    <div className="p-3 text-center">
-                      <Button onClick={() => handleDelete(rec)} className="px-3 py-2 inline-flex items-center bg-red-600 hover:bg-red-700">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>;
-          })}
-            </div>}
         </div>
 
         <div className="flex justify-end">
