@@ -17,6 +17,7 @@ export default function PriceEditor(props) {
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
   const [modelKeyword, setModelKeyword] = useState('');
+  const [priceDate, setPriceDate] = useState(''); // updatedAtText 价格日期
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState({}); // _id -> price string
@@ -44,6 +45,11 @@ export default function PriceEditor(props) {
     if (category) andConds.push({
       category: {
         $eq: category
+      }
+    });
+    if (priceDate) andConds.push({
+      updatedAtText: {
+        $eq: priceDate
       }
     });
     if (modelKeyword) andConds.push({
@@ -198,7 +204,7 @@ export default function PriceEditor(props) {
             category: newRecord.category,
             model: newRecord.model,
             price: priceToSave,
-            updatedAtText: newRecord.updatedAtText || new Date().toLocaleDateString()
+            updatedAtText: newRecord.updatedAtText || priceDate || new Date().toLocaleDateString()
           }
         }
       });
@@ -268,11 +274,21 @@ export default function PriceEditor(props) {
             <label className="block text-sm text-gray-600 mb-1">型号关键词</label>
             <input value={modelKeyword} onChange={e => setModelKeyword(e.target.value)} placeholder="如：iPhone 16" className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
           </div>
+          <div className="flex-1">
+            <label className="block text-sm text-gray-600 mb-1">价格日期</label>
+            <input
+              type="date"
+              value={priceDate}
+              onChange={e => setPriceDate(e.target.value)}
+              placeholder="YYYY-MM-DD"
+              className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
           <div className="flex gap-2">
             <Button onClick={load} className="px-4 py-2 flex items-center justify-center">
               <Search className="w-4 h-4 mr-2" /> 查询
             </Button>
-            <Button onClick={() => setShowAddForm(true)} className="px-4 py-2 flex items-center justify-center bg-green-600 hover:bg-green-700">
+            <Button onClick={() => { setNewRecord(n => ({ ...n, updatedAtText: priceDate || new Date().toLocaleDateString() })); setShowAddForm(true); }} className="px-4 py-2 flex items-center justify-center bg-green-600 hover:bg-green-700">
               <Plus className="w-4 h-4 mr-2" /> 添加
             </Button>
           </div>
