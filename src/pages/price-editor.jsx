@@ -21,6 +21,7 @@ export default function PriceEditor(props) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState({}); // _id -> price string
+  const [editingDate, setEditingDate] = useState({}); // _id -> updatedAtText string (YYYY-MM-DD)
   const [showAddForm, setShowAddForm] = useState(false);
   const [newRecord, setNewRecord] = useState({
     brand: '',
@@ -31,6 +32,12 @@ export default function PriceEditor(props) {
   });
   const onPriceChange = (id, value) => {
     setEditing(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+  const onDateChange = (id, value) => {
+    setEditingDate(prev => ({
       ...prev,
       [id]: value
     }));
@@ -86,6 +93,7 @@ export default function PriceEditor(props) {
       });
       setRecords(res.records || []);
       setEditing({});
+      setEditingDate({});
     } catch (e) {
       toast({
         title: '查询失败',
@@ -104,6 +112,8 @@ export default function PriceEditor(props) {
     const num = Number(raw);
     const valid = Number.isFinite(num) && num > 0;
     const priceToSave = valid ? num : 0;
+    const dateEdited = editingDate[rec._id];
+    const dateToSave = (dateEdited !== undefined ? dateEdited : (rec.updatedAtText || new Date().toLocaleDateString()));
     try {
       await $w.cloud.callDataSource({
         dataSourceName: 'PhonePrice',
@@ -116,7 +126,7 @@ export default function PriceEditor(props) {
           },
           data: {
             price: priceToSave,
-            updatedAtText: new Date().toLocaleDateString()
+            updatedAtText: dateToSave
           }
         }
       });
@@ -152,6 +162,8 @@ export default function PriceEditor(props) {
       const num = Number(raw);
       const valid = Number.isFinite(num) && num > 0;
       const priceToSave = valid ? num : 0;
+      const dateEdited = editingDate[rec._id];
+      const dateToSave = (dateEdited !== undefined ? dateEdited : (rec.updatedAtText || new Date().toLocaleDateString()));
       try {
         await $w.cloud.callDataSource({
           dataSourceName: 'PhonePrice',
@@ -164,7 +176,7 @@ export default function PriceEditor(props) {
             },
             data: {
               price: priceToSave,
-              updatedAtText: new Date().toLocaleDateString()
+              updatedAtText: dateToSave
             }
           }
         });
@@ -323,10 +335,11 @@ export default function PriceEditor(props) {
 
         {/* 数据表格 */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="grid grid-cols-[140px_120px_1fr_140px_120px_80px] bg-yellow-100 text-sm font-semibold">
+          <div className="grid grid-cols-[140px_120px_1fr_140px_140px_120px_80px] bg-yellow-100 text-sm font-semibold">
             <div className="p-3">品牌</div>
             <div className="p-3">分类</div>
             <div className="p-3">型号</div>
+            <div className="p-3">价格日期</div>
             <div className="p-3 text-right">价格</div>
             <div className="p-3 text-right">操作</div>
             <div className="p-3 text-center">删除</div>
@@ -336,10 +349,15 @@ export default function PriceEditor(props) {
               {records.map(rec => {
             const current = editing[rec._id];
             const displayValue = current !== undefined ? current : rec.price ?? '';
-            return <div key={rec._id} className="grid grid-cols-[140px_120px_1fr_140px_120px_80px] items-center hover:bg-gray-50">
+            const currentDate = editingDate[rec._id];
+            const displayDate = currentDate !== undefined ? currentDate : (rec.updatedAtText || '');
+            return <div key={rec._id} className="grid grid-cols-[140px_120px_1fr_140px_140px_120px_80px] items-center hover:bg-gray-50">
                     <div className="p-3 text-sm text-gray-700">{rec.brand}</div>
                     <div className="p-3 text-sm text-gray-700">{rec.category}</div>
                     <div className="p-3 text-sm text-gray-900">{rec.model}</div>
+                    <div className="p-3">
+                      <input className="w-full border rounded px-2 py-1" type="date" value={displayDate} onChange={e => onDateChange(rec._id, e.target.value)} />
+                    </div>
                     <div className="p-3">
                       <input className="w-full border rounded px-2 py-1 text-right" placeholder="数字或留空=电询" value={displayValue} onChange={e => onPriceChange(rec._id, e.target.value)} inputMode="decimal" />
                     </div>
