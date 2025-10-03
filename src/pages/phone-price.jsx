@@ -203,8 +203,8 @@ export default function PhonePrice(props) {
 
         // 获取最新更新时间
         const latestItem = result.records[0];
-        const d = parseRecordUpdateTime(latestItem);
-        setLastUpdate(d ? formatDateTime(d) : '');
+        const d = latestItem && latestItem.updatedAt ? new Date(latestItem.updatedAt) : null;
+        setLastUpdate(d && !isNaN(d.getTime()) ? formatDateTime(d) : '');
       } else {
         setPriceData([]);
         setLastUpdate('');
