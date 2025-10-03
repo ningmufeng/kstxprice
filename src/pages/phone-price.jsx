@@ -24,6 +24,65 @@ export default function PhonePrice(props) {
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState('');
 
+  // 格式化工具：转 YYYY-MM-DD HH:mm
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const formatDateTime = (d) => {
+    if (!d) return '';
+    const year = d.getFullYear();
+    const month = pad2(d.getMonth() + 1);
+    const day = pad2(d.getDate());
+    const hour = pad2(d.getHours());
+    const minute = pad2(d.getMinutes());
+    return `${year}-${month}-${day} ${hour}:${minute}`;
+  };
+
+  // Excel 序列号转 Date（45933 等）
+  const excelSerialToDate = (serial) => {
+    const n = Number(serial);
+    if (!Number.isFinite(n)) return null;
+    const ms = Math.round((n - 25569) * 86400 * 1000);
+    return new Date(ms);
+  };
+
+  // 解析 updatedAtText / updatedAt 为 Date
+  const parseRecordUpdateTime = (rec) => {
+    const txt = rec && rec.updatedAtText;
+    if (txt) {
+      // 纯数字（Excel 序列）
+      if (/^\d+(\.\d+)?$/.test(String(txt).trim())) {
+        const d = excelSerialToDate(txt);
+        if (d) return d;
+      }
+      // 字符串日期，若无时间部分补 00:00
+      const s = String(txt).trim();
+      const hasTime = /\dT\d|\d \d/.test(s);
+      const tryDate = new Date(hasTime ? s : `${s}T00:00:00`);
+      if (!isNaN(tryDate.getTime())) return tryDate;
+    }
+    // 回退使用系统 updatedAt
+    const upd = rec && rec.updatedAt ? new Date(rec.updatedAt) : null;
+    if (upd && !isNaN(upd.getTime())) return upd;
+    return null;
+  };
+
+  // 将全角转半角
+  const toHalfWidth = (str) => {
+    if (!str) return str;
+    return str.replace(/[\uFF01-\uFF5E]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 65248))
+              .replace(/\u3000/g, ' ');
+  };
+  // 规范化品牌名（目前重点处理 vivo 的各种写法）
+  const normalizeBrandName = (raw) => {
+    if (!raw) return raw;
+    const s = toHalfWidth(String(raw)).trim();
+    const letters = s.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '');
+    const lower = letters.toLowerCase();
+    if (lower === 'vivo') return 'vivo';
+    return s; // 其他品牌保持原样（已去空格/半角化）
+  };
+  // vivo 同义集合（用于查询时兼容历史大小写/全角）
+  const vivoSynonyms = ['vivo', 'VIVO', 'Vivo', 'ViVo', 'vIvO', 'ＶＩＶＯ'];
+
   // 设置页面标题和微信分享信息
   useEffect(() => {
     const currentDate = new Date();
@@ -79,10 +138,8 @@ export default function PhonePrice(props) {
       if (result.records && result.records.length > 0) {
         const brandSet = new Set();
         result.records.forEach(item => {
-          // CloudBase返回的数据已经是对象，直接访问字段
-          if (item.brand) {
-            brandSet.add(item.brand);
-          }
+          const normalized = normalizeBrandName(item.brand);
+          if (normalized) brandSet.add(normalized);
         });
         if (brandSet.size > 0) {
           // 按默认顺序排列，额外品牌排在后面（按字母序）
@@ -111,6 +168,10 @@ export default function PhonePrice(props) {
     if (!selectedBrand || !selectedCategory) return;
     setLoading(true);
     try {
+      // 若选择的是 vivo，则同时兼容诸如 VIVO/ＶＩＶＯ 等历史写法
+      const brandFilter = selectedBrand.toLowerCase() === 'vivo'
+        ? { $in: vivoSynonyms }
+        : { $eq: selectedBrand };
       const result = await $w.cloud.callDataSource({
         dataSourceName: 'PhonePrice',
         methodName: 'wedaGetRecordsV2',
@@ -118,9 +179,7 @@ export default function PhonePrice(props) {
           filter: {
             where: {
               $and: [{
-                brand: {
-                  $eq: selectedBrand
-                }
+                brand: brandFilter
               }, {
                 category: {
                   $eq: selectedCategory
@@ -144,7 +203,8 @@ export default function PhonePrice(props) {
 
         // 获取最新更新时间
         const latestItem = result.records[0];
-        setLastUpdate(latestItem.updatedAtText || new Date(latestItem.updatedAt).toLocaleDateString());
+        const d = parseRecordUpdateTime(latestItem);
+        setLastUpdate(d ? formatDateTime(d) : '');
       } else {
         setPriceData([]);
         setLastUpdate('');
