@@ -246,38 +246,38 @@ export default function PhonePrice(props) {
           ]
         });
       }
-      const result = await $w.cloud.callDataSource({
-        dataSourceName: 'PhonePrice',
-        methodName: 'wedaGetRecordsV2',
-        params: {
-          filter: {
-            where
-          },
-          select: {
-            $master: true
-          },
-          orderBy: [{
-            updatedAt: 'desc'
-          }],
-          pageSize: 500,
-          pageNumber: 1
-        }
-      });
-      const rows = result.records || [];
-      // 去重：同一型号只保留“最后一个日期”的记录
+      const PAGE_SIZE = 200; // 接口单页最多200
+      const MAX_PAGES = 5;   // 安全上限，最多抓取1000条后再前端去重
       const latestByModel = new Map();
-      for (const rec of rows) {
-        const key = rec.model || '';
-        const d = parseRecordUpdateTime(rec) || (rec.updatedAt ? new Date(rec.updatedAt) : null);
-        const existed = latestByModel.get(key);
-        if (!existed) {
-          latestByModel.set(key, rec);
-        } else {
-          const de = parseRecordUpdateTime(existed) || (existed.updatedAt ? new Date(existed.updatedAt) : null);
-          const tn = d ? d.getTime() : 0;
-          const te = de ? de.getTime() : 0;
-          if (tn > te) latestByModel.set(key, rec);
+      let page = 1;
+      while (page <= MAX_PAGES) {
+        const result = await $w.cloud.callDataSource({
+          dataSourceName: 'PhonePrice',
+          methodName: 'wedaGetRecordsV2',
+          params: {
+            filter: { where },
+            select: { $master: true },
+            orderBy: [{ updatedAt: 'desc' }],
+            pageSize: PAGE_SIZE,
+            pageNumber: page
+          }
+        });
+        const rows = result.records || [];
+        for (const rec of rows) {
+          const key = rec.model || '';
+          const d = parseRecordUpdateTime(rec) || (rec.updatedAt ? new Date(rec.updatedAt) : null);
+          const existed = latestByModel.get(key);
+          if (!existed) {
+            latestByModel.set(key, rec);
+          } else {
+            const de = parseRecordUpdateTime(existed) || (existed.updatedAt ? new Date(existed.updatedAt) : null);
+            const tn = d ? d.getTime() : 0;
+            const te = de ? de.getTime() : 0;
+            if (tn > te) latestByModel.set(key, rec);
+          }
         }
+        if (rows.length < PAGE_SIZE) break;
+        page += 1;
       }
       const list = Array.from(latestByModel.values()).sort((a, b) => {
         const da = parseRecordUpdateTime(a) || (a.updatedAt ? new Date(a.updatedAt) : null);
