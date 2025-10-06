@@ -312,10 +312,8 @@ export default function PhonePrice(props) {
 
         {/* 新增：型号查询行 */}
          <section className="bg-white rounded-lg p-4 shadow-sm">
-           <div className="text-sm font-medium text-gray-700 mb-2">型号模糊查询（跨品牌/分类，去重后最新）</div>
            <div className="flex flex-wrap gap-3 items-end">
              <div className="flex-1 min-w-[200px]">
-              <label className="text-xs text-gray-600 mb-1 block">型号（模糊）</label>
                <input
                  type="text"
                  placeholder="输入型号关键词"
