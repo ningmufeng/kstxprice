@@ -28,8 +28,6 @@ export default function PhonePrice(props) {
   const [lastUpdate, setLastUpdate] = useState('');
 
   /* ---------------- 新增查询行状态 ---------------- */
-  const [queryBrand, setQueryBrand] = useState('华为');
-  const [queryCategory, setQueryCategory] = useState('手机');
   const [queryModel, setQueryModel] = useState('');
   const [latestRecord, setLatestRecord] = useState(null);
   const [queryList, setQueryList] = useState([]);
@@ -212,40 +210,20 @@ export default function PhonePrice(props) {
 
   /* ---------------- 新增：查询最新一条记录 ---------------- */
   const loadLatestRecord = async () => {
-    if (!queryBrand || !queryCategory) {
-      toast({
-        title: '提示',
-        description: '请先选择品牌和分类',
-        variant: 'default'
-      });
+    if (!queryModel || !queryModel.trim()) {
+      toast({ title: '提示', description: '请输入型号关键词', variant: 'default' });
       return;
     }
     setQueryLoading(true);
     try {
-      const brandFilter = queryBrand.toLowerCase() === 'vivo' ? {
-        $in: vivoSynonyms
-      } : {
-        $eq: queryBrand
-      };
+      const kw = toHalfWidth(queryModel.trim());
+      const pattern = `.*${escapeReg(kw)}.*`;
       const where = {
-        $and: [{
-          brand: brandFilter
-        }, {
-          category: {
-            $eq: queryCategory
-          }
-        }]
+        $or: [
+          { model: { $regex_ci: pattern } },
+          { modelName: { $regex_ci: pattern } }
+        ]
       };
-      if (queryModel.trim()) {
-        const kw = toHalfWidth(queryModel.trim());
-        const pattern = `.*${escapeReg(kw)}.*`;
-        where.$and.push({
-          $or: [
-            { model: { $regex_ci: pattern } },
-            { modelName: { $regex_ci: pattern } }
-          ]
-        });
-      }
       const PAGE_SIZE = 200; // 接口单页最多200
       const MAX_PAGES = 5;   // 安全上限，最多抓取1000条后再前端去重
       const latestByModel = new Map();
@@ -317,45 +295,18 @@ export default function PhonePrice(props) {
       </header>
 
       <main className="flex-1 p-4 space-y-4 max-w-4xl mx-auto w-full">
-        {/* 品牌 Chips */}
+        {/* 新增：单一查询框（不区分品牌和分类） */}
         <section className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-sm font-medium text-gray-700 mb-2">品牌</div>
-          <PriceChips items={brands} current={selectedBrand} onClick={setSelectedBrand} />
-        </section>
-
-        {/* 分类 Chips */}
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-sm font-medium text-gray-700 mb-2">分类</div>
-          <PriceChips items={categories} current={selectedCategory} onClick={setSelectedCategory} />
-        </section>
-
-        {/* 新增：型号查询行 */}
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-sm font-medium text-gray-700 mb-2">快速查询最新一条</div>
-          <div className="flex flex-wrap gap-3 items-end">
-            <div className="flex-1 min-w-[120px]">
-              <label className="text-xs text-gray-600 mb-1 block">品牌</label>
-              <select value={queryBrand} onChange={e => setQueryBrand(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
-                {brands.map(b => <option key={b} value={b}>{b}</option>)}
-              </select>
-            </div>
-            <div className="flex-1 min-w-[120px]">
-              <label className="text-xs text-gray-600 mb-1 block">分类</label>
-              <select value={queryCategory} onChange={e => setQueryCategory(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-             <div className="flex-1 min-w-[160px]">
-              <label className="text-xs text-gray-600 mb-1 block">型号（模糊）</label>
-               <input
-                 type="text"
-                 placeholder="输入型号关键词"
-                 value={queryModel}
-                 onChange={e => setQueryModel(e.target.value)}
-                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (!queryLoading) loadLatestRecord(); } }}
-                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-               />
-            </div>
+          <div className="text-sm font-medium text-gray-700 mb-2">型号查询（模糊，不区分品牌/分类）</div>
+          <div className="flex gap-3 items-end">
+            <input
+              type="text"
+              placeholder="输入型号关键词，如：MateX6"
+              value={queryModel}
+              onChange={e => setQueryModel(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (!queryLoading) loadLatestRecord(); } }}
+              className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
             <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1 disabled:opacity-50">
               <Search size={14} />
               {queryLoading ? '查询中...' : '查询'}
@@ -371,7 +322,7 @@ export default function PhonePrice(props) {
              <PriceTable data={queryList} loading={false} />
            </section>}
 
-        {/* 原有表格标题 */}
+         {/* 原有表格标题 */}
         {lastUpdate && <div className="text-sm text-gray-600 px-2">
             {selectedBrand} {selectedCategory} 最后更新: {lastUpdate}
           </div>}
