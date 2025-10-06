@@ -345,9 +345,16 @@ export default function PhonePrice(props) {
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div className="flex-1 min-w-[160px]">
+             <div className="flex-1 min-w-[160px]">
               <label className="text-xs text-gray-600 mb-1 block">型号（模糊）</label>
-              <input type="text" placeholder="输入型号关键词" value={queryModel} onChange={e => setQueryModel(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" />
+               <input
+                 type="text"
+                 placeholder="输入型号关键词"
+                 value={queryModel}
+                 onChange={e => setQueryModel(e.target.value)}
+                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (!queryLoading) loadLatestRecord(); } }}
+                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+               />
             </div>
             <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1 disabled:opacity-50">
               <Search size={14} />
