@@ -234,9 +234,8 @@ export default function PhonePrice(props) {
       };
       if (queryModel.trim()) {
         where.$and.push({
-          modelName: {
-            $search: queryModel.trim()
-          }
+          // 型号字段为 model，使用不区分大小写的模糊匹配
+          model: { $regex_ci: queryModel.trim() }
         });
       }
       const result = await $w.cloud.callDataSource({
@@ -256,7 +255,7 @@ export default function PhonePrice(props) {
           pageNumber: 1
         }
       });
-      setLatestRecord(result.records?.[0] || null);
+       setLatestRecord(result.records?.[0] || null);
     } catch (error) {
       console.error('查询最新记录失败:', error);
       toast({
