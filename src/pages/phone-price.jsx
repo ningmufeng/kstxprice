@@ -356,19 +356,7 @@ export default function PhonePrice(props) {
           </div>
         </section>
 
-         {/* 最新一条记录卡片 */}
-         {latestRecord && <section className="bg-white rounded-lg shadow-sm border border-blue-200">
-            <div className="bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 rounded-t-lg">
-              最新一条记录
-            </div>
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <div><span className="font-medium text-gray-600">品牌：</span>{latestRecord.brand}</div>
-              <div><span className="font-medium text-gray-600">分类：</span>{latestRecord.category}</div>
-               <div className="sm:col-span-2"><span className="font-medium text-gray-600">型号：</span>{latestRecord.model}</div>
-              <div><span className="font-medium text-gray-600">价格：</span><span className="text-red-600 font-bold">{latestRecord.price} 元</span></div>
-              <div><span className="font-medium text-gray-600">更新时间：</span>{formatDateTime(parseRecordUpdateTime(latestRecord))}</div>
-            </div>
-          </section>}
+         {/* 最新一条记录卡片已应需求移除显示 */}
 
          {/* 查询结果列表（同型号只保留最后一条） */}
          {queryList.length > 0 && <section className="bg-white rounded-lg p-4 shadow-sm">
