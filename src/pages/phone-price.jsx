@@ -81,6 +81,9 @@ export default function PhonePrice(props) {
   };
   const vivoSynonyms = ['vivo', 'VIVO', 'Vivo', 'ViVo', 'vIvO', 'ＶＩＶＯ'];
 
+  // 安全转义正则
+  const escapeReg = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   /* ---------------- 原有逻辑（保持已有） ---------------- */
   useEffect(() => {
     const currentDate = new Date();
@@ -233,9 +236,13 @@ export default function PhonePrice(props) {
         }]
       };
       if (queryModel.trim()) {
+        const kw = toHalfWidth(queryModel.trim());
+        const pattern = `.*${escapeReg(kw)}.*`;
         where.$and.push({
-          // 型号字段为 model，使用不区分大小写的模糊匹配
-          model: { $regex_ci: queryModel.trim() }
+          $or: [
+            { model: { $regex_ci: pattern } },
+            { modelName: { $regex_ci: pattern } }
+          ]
         });
       }
       const result = await $w.cloud.callDataSource({
