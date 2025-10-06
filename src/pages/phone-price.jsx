@@ -32,6 +32,7 @@ export default function PhonePrice(props) {
   const [queryCategory, setQueryCategory] = useState('手机');
   const [queryModel, setQueryModel] = useState('');
   const [latestRecord, setLatestRecord] = useState(null);
+  const [queryList, setQueryList] = useState([]);
   const [queryLoading, setQueryLoading] = useState(false);
 
   /* ---------------- 工具函数（保持已有） ---------------- */
@@ -258,11 +259,35 @@ export default function PhonePrice(props) {
           orderBy: [{
             updatedAt: 'desc'
           }],
-          pageSize: 1,
+          pageSize: 500,
           pageNumber: 1
         }
       });
-       setLatestRecord(result.records?.[0] || null);
+      const rows = result.records || [];
+      // 去重：同一型号只保留“最后一个日期”的记录
+      const latestByModel = new Map();
+      for (const rec of rows) {
+        const key = rec.model || '';
+        const d = parseRecordUpdateTime(rec) || (rec.updatedAt ? new Date(rec.updatedAt) : null);
+        const existed = latestByModel.get(key);
+        if (!existed) {
+          latestByModel.set(key, rec);
+        } else {
+          const de = parseRecordUpdateTime(existed) || (existed.updatedAt ? new Date(existed.updatedAt) : null);
+          const tn = d ? d.getTime() : 0;
+          const te = de ? de.getTime() : 0;
+          if (tn > te) latestByModel.set(key, rec);
+        }
+      }
+      const list = Array.from(latestByModel.values()).sort((a, b) => {
+        const da = parseRecordUpdateTime(a) || (a.updatedAt ? new Date(a.updatedAt) : null);
+        const db = parseRecordUpdateTime(b) || (b.updatedAt ? new Date(b.updatedAt) : null);
+        const ta = da ? da.getTime() : 0;
+        const tb = db ? db.getTime() : 0;
+        return tb - ta;
+      });
+      setQueryList(list);
+      setLatestRecord(list[0] || null);
     } catch (error) {
       console.error('查询最新记录失败:', error);
       toast({
@@ -331,7 +356,7 @@ export default function PhonePrice(props) {
           </div>
         </section>
 
-        {/* 最新一条记录卡片 */}
+         {/* 最新一条记录卡片 */}
          {latestRecord && <section className="bg-white rounded-lg shadow-sm border border-blue-200">
             <div className="bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 rounded-t-lg">
               最新一条记录
@@ -344,6 +369,12 @@ export default function PhonePrice(props) {
               <div><span className="font-medium text-gray-600">更新时间：</span>{formatDateTime(parseRecordUpdateTime(latestRecord))}</div>
             </div>
           </section>}
+
+         {/* 查询结果列表（同型号只保留最后一条） */}
+         {queryList.length > 0 && <section className="bg-white rounded-lg p-4 shadow-sm">
+             <div className="text-sm font-medium text-gray-700 mb-2">查询结果（{queryList.length} 条）</div>
+             <PriceTable data={queryList} loading={false} />
+           </section>}
 
         {/* 原有表格标题 */}
         {lastUpdate && <div className="text-sm text-gray-600 px-2">
