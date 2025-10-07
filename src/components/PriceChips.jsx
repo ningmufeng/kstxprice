@@ -4,11 +4,11 @@ import React from 'react';
 export function PriceChips({
   items,
   current,
-  onClick,
-  className = ''
+  onClick
 }) {
-  return <div className={`flex flex-wrap gap-2 ${className}`}>
-      {items.map(item => <button key={item} className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${item === current ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-700 border-gray-300 hover:border-red-300 hover:text-red-500'} border`} onClick={() => onClick(item)}>
+  return <div className="flex flex-wrap gap-2">
+      {items.map(item => <button key={item} onClick={() => onClick(item)} className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors
+            ${current === item ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
           {item}
         </button>)}
     </div>;
