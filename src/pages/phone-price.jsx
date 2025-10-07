@@ -301,12 +301,12 @@ export default function PhonePrice(props) {
 
       <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
         {/* 品牌行 - 浅灰背景 */}
-        <section className="bg-gray-100 rounded-lg p-3 shadow-sm">
+        <section className="bg-gray-100 rounded-lg p-2 shadow-sm">
           <PriceChips items={brands} current={selectedBrand} onClick={setSelectedBrand} />
         </section>
 
         {/* 分类行 - 白色背景 */}
-        <section className="bg-white rounded-lg p-3 shadow-sm">
+        <section className="bg-white rounded-lg p-2 shadow-sm">
           <PriceChips items={categories} current={selectedCategory} onClick={setSelectedCategory} />
         </section>
 

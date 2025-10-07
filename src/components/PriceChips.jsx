@@ -6,9 +6,9 @@ export function PriceChips({
   current,
   onClick
 }) {
-  return <div className="flex flex-wrap gap-2">
-      {items.map(item => <button key={item} onClick={() => onClick(item)} className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors
-            ${current === item ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+  return <div className="flex flex-wrap gap-1.5">
+      {items.map(item => <button key={item} onClick={() => onClick(item)} className={`px-2 py-1 rounded-full text-xs font-medium transition-colors
+            ${current === item ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
           {item}
         </button>)}
     </div>;
