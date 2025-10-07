@@ -299,14 +299,14 @@ export default function PhonePrice(props) {
         </h1>
       </header>
 
-      <main className="flex-1 p-4 space-y-4 max-w-4xl mx-auto w-full">
+      <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
+        {/* 品牌区块 - 隐藏标题文字，使用白色背景 */}
         <section className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-sm font-medium text-gray-700 mb-2">品牌</div>
           <PriceChips items={brands} current={selectedBrand} onClick={setSelectedBrand} />
         </section>
 
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-sm font-medium text-gray-700 mb-2">分类</div>
+        {/* 分类区块 - 隐藏标题文字，使用浅灰色背景区分 */}
+        <section className="bg-gray-50 rounded-lg p-4 shadow-sm">
           <PriceChips items={categories} current={selectedCategory} onClick={setSelectedCategory} />
         </section>
 
