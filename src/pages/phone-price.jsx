@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { useToast } from '@/components/ui';
 // @ts-ignore;
-import { Search } from 'lucide-react';
+import { Search, Phone } from 'lucide-react';
 
 import { PriceChips } from '@/components/PriceChips';
 import { PriceTable } from '@/components/PriceTable';
@@ -311,17 +311,21 @@ export default function PhonePrice(props) {
         </section>
 
         <section className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex gap-3 items-end">
-            <input type="text" placeholder="输入型号关键词" value={queryModel} onChange={e => setQueryModel(e.target.value)} onKeyDown={e => {
+          <div className="flex gap-2 items-end">
+            <input type="text" placeholder="型号关键词" value={queryModel} onChange={e => setQueryModel(e.target.value)} onKeyDown={e => {
             if (e.key === 'Enter') {
               e.preventDefault();
               if (!queryLoading) loadLatestRecord();
             }
-          }} className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm" />
-            <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1 disabled:opacity-50">
-              <Search size={14} />
-              {queryLoading ? '查询中...' : '查询'}
+          }} className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-xs" />
+            <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1 disabled:opacity-50">
+              <Search size={12} />
+              {queryLoading ? '查询' : '查询'}
             </button>
+            <a href="tel:031185209160" className="bg-green-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1">
+              <Phone size={12} />
+              电询
+            </a>
           </div>
         </section>
 
