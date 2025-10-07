@@ -28,6 +28,8 @@ export default function PhonePrice(props) {
   const [lastUpdate, setLastUpdate] = useState('');
 
   /* ---------------- 新增查询行状态 ---------------- */
+  const [queryBrand, setQueryBrand] = useState('华为');
+  const [queryCategory, setQueryCategory] = useState('手机');
   const [queryModel, setQueryModel] = useState('');
   const [latestRecord, setLatestRecord] = useState(null);
   const [queryList, setQueryList] = useState([]);
@@ -139,6 +141,8 @@ export default function PhonePrice(props) {
           if (brandList.length > 0 && !brandList.includes(selectedBrand)) {
             setSelectedBrand(brandList[0]);
           }
+          // 同步初始化查询行品牌
+          if (!brandList.includes(queryBrand)) setQueryBrand(brandList[0]);
         }
       }
     } catch (error) {
@@ -210,11 +214,7 @@ export default function PhonePrice(props) {
   const loadLatestRecord = async () => {
     // 改为仅按型号关键词查询（跨品牌/分类）
     if (!queryModel || !queryModel.trim()) {
-      toast({
-        title: '提示',
-        description: '请输入型号关键词',
-        variant: 'default'
-      });
+      toast({ title: '提示', description: '请输入型号关键词', variant: 'default' });
       return;
     }
     setQueryLoading(true);
@@ -222,18 +222,13 @@ export default function PhonePrice(props) {
       const kw = toHalfWidth(queryModel.trim());
       const pattern = `.*${escapeReg(kw)}.*`;
       const where = {
-        $or: [{
-          model: {
-            $regex_ci: pattern
-          }
-        }, {
-          modelName: {
-            $regex_ci: pattern
-          }
-        }]
+        $or: [
+          { model: { $regex_ci: pattern } },
+          { modelName: { $regex_ci: pattern } }
+        ]
       };
       const PAGE_SIZE = 200; // 接口单页最多200
-      const MAX_PAGES = 5; // 安全上限，最多抓取1000条后再前端去重
+      const MAX_PAGES = 5;   // 安全上限，最多抓取1000条后再前端去重
       const latestByModel = new Map();
       let page = 1;
       while (page <= MAX_PAGES) {
@@ -241,15 +236,9 @@ export default function PhonePrice(props) {
           dataSourceName: 'PhonePrice',
           methodName: 'wedaGetRecordsV2',
           params: {
-            filter: {
-              where
-            },
-            select: {
-              $master: true
-            },
-            orderBy: [{
-              updatedAt: 'desc'
-            }],
+            filter: { where },
+            select: { $master: true },
+            orderBy: [{ updatedAt: 'desc' }],
             pageSize: PAGE_SIZE,
             pageNumber: page
           }
@@ -325,12 +314,14 @@ export default function PhonePrice(props) {
          <section className="bg-white rounded-lg p-4 shadow-sm">
            <div className="flex flex-wrap gap-3 items-end">
              <div className="flex-1 min-w-[200px]">
-               <input type="text" placeholder="输入型号关键词，如：MateX6" value={queryModel} onChange={e => setQueryModel(e.target.value)} onKeyDown={e => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                if (!queryLoading) loadLatestRecord();
-              }
-            }} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" />
+               <input
+                 type="text"
+                 placeholder="输入型号关键词"
+                 value={queryModel}
+                 onChange={e => setQueryModel(e.target.value)}
+                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (!queryLoading) loadLatestRecord(); } }}
+                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+               />
             </div>
             <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1 disabled:opacity-50">
               <Search size={14} />
@@ -338,6 +329,8 @@ export default function PhonePrice(props) {
             </button>
           </div>
         </section>
+
+         {/* 最新一条记录卡片已应需求移除显示 */}
 
          {/* 查询结果列表（同型号只保留最后一条） */}
          {queryList.length > 0 && <section className="bg-white rounded-lg p-4 shadow-sm">
@@ -352,15 +345,6 @@ export default function PhonePrice(props) {
 
         {/* 原有表格 */}
         <PriceTable data={priceData} loading={loading} className="mt-2" />
-
-        {/* 电话按钮 */}
-        <div className="fixed bottom-20 right-4 z-20">
-          <a href="tel:0311-85209160" className="bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-            </svg>
-          </a>
-        </div>
       </main>
 
       <footer className="bg-white border-t border-gray-200 p-4 mt-auto">
