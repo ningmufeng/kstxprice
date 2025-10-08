@@ -19,7 +19,7 @@ export default function PhonePrice(props) {
 
   /* ---------------- 状态 ---------------- */
   const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '三星', '小米', '苹果'];
-  const extraBrands = ['苹果', '一加', '小度', '小天才', '其它'];
+  const extraBrands = ['一加', '小度', '小天才', '其它'];
   const [brands, setBrands] = useState(defaultBrands);
   const [categories] = useState(['手机', '平板', '手表', '耳机']);
   const [selectedBrand, setSelectedBrand] = useState('华为');
@@ -131,7 +131,6 @@ export default function PhonePrice(props) {
         });
         if (brandSet.size > 0) {
           const existing = Array.from(brandSet);
-          // 始终包含默认品牌（确保例如“三星”等固定品牌出现）
           const ordered = defaultBrands.slice();
           const others = existing.filter(b => !defaultBrands.includes(b)).sort();
           const brandList = Array.from(new Set([...ordered, ...others]));
@@ -156,12 +155,17 @@ export default function PhonePrice(props) {
     try {
       let brandFilter;
       if (selectedBrand === '其它') {
-        // 选择“其它”：展示非默认品牌集合
-        brandFilter = { $nin: defaultBrands };
+        brandFilter = {
+          $nin: defaultBrands
+        };
       } else if (selectedBrand && selectedBrand.toLowerCase() === 'vivo') {
-        brandFilter = { $in: vivoSynonyms };
+        brandFilter = {
+          $in: vivoSynonyms
+        };
       } else {
-        brandFilter = { $eq: selectedBrand };
+        brandFilter = {
+          $eq: selectedBrand
+        };
       }
       const result = await $w.cloud.callDataSource({
         dataSourceName: 'PhonePrice',
@@ -291,7 +295,7 @@ export default function PhonePrice(props) {
       setQueryLoading(false);
     }
   };
-  const handleBrandClick = (item) => {
+  const handleBrandClick = item => {
     if (item === '更多') {
       setShowMoreBrands(true);
     } else {
@@ -307,87 +311,83 @@ export default function PhonePrice(props) {
   const currentDate = new Date();
   const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
   return <div style={style} className={`min-h-screen bg-gray-50 flex flex-col ${className || ''}`}>
-      <header className="bg-blue-600 text-white p-4 sticky top-0 z-10 shadow-md">
-        <h1 className="text-lg font-bold text-center">
-          石家庄旷世唐朵通讯报价单 {formattedDate}
-        </h1>
-      </header>
+    <header className="bg-blue-600 text-white p-4 sticky top-0 z-10 shadow-md">
+      <h1 className="text-lg font-bold text-center">
+        石家庄旷世唐朵通讯报价单 {formattedDate}
+      </h1>
+    </header>
 
-      <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
-        {/* 品牌行 - 浅灰背景 */}
-        <section className="bg-gray-100 rounded-lg p-2 shadow-sm">
-          <PriceChips
-            items={[...brands.filter(b => b !== '苹果'), '更多']}
-            current={extraBrands.includes(selectedBrand) ? '更多' : selectedBrand}
-            onClick={handleBrandClick}
-          />
-        </section>
+    <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
+      {/* 品牌区域 - 冷色系 */}
+      <section className="bg-slate-100 rounded-lg p-2 shadow-sm">
+        <PriceChips items={[...brands.filter(b => b !== '苹果'), '更多']} current={extraBrands.includes(selectedBrand) ? '更多' : selectedBrand} onClick={handleBrandClick} activeColor="bg-blue-500 text-white" inactiveColor="bg-slate-200 text-slate-700 hover:bg-slate-300" />
+      </section>
 
-        {showMoreBrands && (
-          <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreBrands(false)}>
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="relative mt-24 w-[90vw] max-w-sm bg-white rounded-lg shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
-              <div className="p-4 border-b border-gray-100 font-semibold">选择品牌</div>
-              <div className="p-3 grid grid-cols-2 gap-2">
-                {extraBrands.map(b => (
-                  <button
-                    key={b}
-                    className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-red-300 hover:text-red-500 text-gray-700 text-left"
-                    onClick={() => { setSelectedBrand(b); setShowMoreBrands(false); }}
-                  >
-                    {b}
-                  </button>
-                ))}
-              </div>
-              <div className="p-3 border-t border-gray-100 text-right">
-                <button className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:border-gray-400" onClick={() => setShowMoreBrands(false)}>取消</button>
-              </div>
+      {/* 更多品牌弹窗 */}
+      {showMoreBrands && <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreBrands(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative mt-24 w-[90vw] max-w-sm bg-white rounded-lg shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-100 font-semibold">选择品牌</div>
+            <div className="p-3 grid grid-cols-2 gap-2">
+              {extraBrands.map(b => <button key={b} className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-blue-300 hover:text-blue-500 text-gray-700 text-left transition-colors" onClick={() => {
+              setSelectedBrand(b);
+              setShowMoreBrands(false);
+            }}>
+                  {b}
+                </button>)}
+            </div>
+            <div className="p-3 border-t border-gray-100 text-right">
+              <button className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:border-gray-400 transition-colors" onClick={() => setShowMoreBrands(false)}>取消</button>
             </div>
           </div>
-        )}
+        </div>}
 
-        {/* 分类行 - 白色背景 */}
-        <section className="bg-white rounded-lg p-2 shadow-sm">
-          <PriceChips items={categories} current={selectedCategory} onClick={setSelectedCategory} />
-        </section>
+      {/* 分类区域 - 暖色系 */}
+      <section className="bg-orange-50 rounded-lg p-2 shadow-sm">
+        <PriceChips items={categories} current={selectedCategory} onClick={setSelectedCategory} activeColor="bg-orange-500 text-white" inactiveColor="bg-orange-100 text-orange-700 hover:bg-orange-200" />
+      </section>
 
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex gap-2 items-end">
-            <input type="text" placeholder="型号关键词" value={queryModel} onChange={e => setQueryModel(e.target.value)} onKeyDown={e => {
+      {/* 搜索区域 */}
+      <section className="bg-white rounded-lg p-4 shadow-sm">
+        <div className="flex gap-2 items-end">
+          <input type="text" placeholder="型号关键词" value={queryModel} onChange={e => setQueryModel(e.target.value)} onKeyDown={e => {
             if (e.key === 'Enter') {
               e.preventDefault();
               if (!queryLoading) loadLatestRecord();
             }
-          }} className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-xs" />
-            <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1 disabled:opacity-50">
-              <Search size={12} />
-              {queryLoading ? '查询' : '查询'}
-            </button>
-            <a href="tel:031185209160" className="bg-green-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1">
-              <Phone size={12} />
-              电询
-            </a>
-          </div>
-        </section>
-
-        {queryList.length > 0 && <section className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="text-sm font-medium text-gray-700 mb-2">
-              查询结果（{queryList.length} 条）
-            </div>
-            <PriceTable data={queryList} loading={false} />
-          </section>}
-
-        {lastUpdate && <div className="text-sm text-gray-600 px-2">
-            {selectedBrand} {selectedCategory} 最后更新: {lastUpdate}
-          </div>}
-
-        <PriceTable data={priceData} loading={loading} className="mt-2" />
-      </main>
-
-      <footer className="bg-white border-t border-gray-200 p-4 mt-auto">
-        <div className="text-center text-sm text-gray-500">
-          数据存储: CloudBase · 演示模板
+          }} className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow" />
+          <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1 disabled:opacity-50 hover:bg-blue-700 transition-colors">
+            <Search size={12} />
+            {queryLoading ? '查询中...' : '查询'}
+          </button>
+          <a href="tel:031185209160" className="bg-green-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1 hover:bg-green-700 transition-colors">
+            <Phone size={12} />
+            电询
+          </a>
         </div>
-      </footer>
-    </div>;
+      </section>
+
+      {/* 查询结果 */}
+      {queryList.length > 0 && <section className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="text-sm font-medium text-gray-700 mb-2">
+            查询结果（{queryList.length} 条）
+          </div>
+          <PriceTable data={queryList} loading={false} />
+        </section>}
+
+      {/* 最后更新时间 */}
+      {lastUpdate && <div className="text-sm text-gray-600 px-2">
+          {selectedBrand} {selectedCategory} 最后更新: {lastUpdate}
+        </div>}
+
+      {/* 价格表格 */}
+      <PriceTable data={priceData} loading={loading} className="mt-2" />
+    </main>
+
+    <footer className="bg-white border-t border-gray-200 p-4 mt-auto">
+      <div className="text-center text-sm text-gray-500">
+        数据存储: CloudBase · 演示模板
+      </div>
+    </footer>
+  </div>;
 }
