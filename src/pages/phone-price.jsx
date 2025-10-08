@@ -129,9 +129,10 @@ export default function PhonePrice(props) {
         });
         if (brandSet.size > 0) {
           const existing = Array.from(brandSet);
-          const ordered = defaultBrands.filter(b => brandSet.has(b));
+          // 始终包含默认品牌（确保例如“三星”等固定品牌出现）
+          const ordered = defaultBrands.slice();
           const others = existing.filter(b => !defaultBrands.includes(b)).sort();
-          const brandList = [...ordered, ...others];
+          const brandList = Array.from(new Set([...ordered, ...others]));
           setBrands(brandList);
           if (brandList.length > 0 && !brandList.includes(selectedBrand)) {
             setSelectedBrand(brandList[0]);
