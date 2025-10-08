@@ -21,7 +21,7 @@ export default function PhonePrice(props) {
   const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '三星', '小米', '苹果'];
   const extraBrands = ['一加', '小度', '小天才', '其它'];
   const defaultCategories = ['手机', '平板', '手表', '耳机', '手环', '笔记本电脑'];
-  const extraCategories = [ '学习机','充电器', '路由器', '摄像头', '台灯', '其它'];
+  const extraCategories = ['学习机', '充电器', '路由器', '摄像头', '台灯', '其它'];
   const [brands, setBrands] = useState(defaultBrands);
   const [categories] = useState(defaultCategories);
   const [selectedBrand, setSelectedBrand] = useState('华为');
@@ -180,9 +180,13 @@ export default function PhonePrice(props) {
       }
       let categoryFilter;
       if (selectedCategory === '其它') {
-        categoryFilter = { $nin: defaultCategories };
+        categoryFilter = {
+          $nin: defaultCategories
+        };
       } else {
-        categoryFilter = { $eq: selectedCategory };
+        categoryFilter = {
+          $eq: selectedCategory
+        };
       }
       const result = await $w.cloud.callDataSource({
         dataSourceName: 'PhonePrice',
@@ -417,10 +421,13 @@ export default function PhonePrice(props) {
   const currentDate = new Date();
   const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
   return <div style={style} className={`min-h-screen bg-gray-50 flex flex-col ${className || ''}`}>
-    <header className="bg-blue-600 text-white p-4 sticky top-0 z-10 shadow-md">
-      <h1 className="text-lg font-bold text-center">
-        石家庄旷世唐朵通讯报价单 {formattedDate}
-      </h1>
+    <header className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-16 flex items-center px-4 shadow-md rounded-b-xl">
+      <div className="max-w-4xl mx-auto flex items-center w-full">
+        <Phone size={24} />
+        <h1 className="text-xl font-bold ml-3">
+          石家庄旷世唐朵通讯报价单 {formattedDate}
+        </h1>
+      </div>
     </header>
 
     <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
@@ -474,10 +481,13 @@ export default function PhonePrice(props) {
       {/* 分类区域 - 暖色系（单行显示，溢出折叠到“更多”） */}
       <section className="bg-orange-50 rounded-md py-1 px-1.5 shadow-sm" ref={categoriesRowRef}>
         {/* 隐藏测量容器：用于计算一行可容纳的分类 */}
-        <div
-          ref={measureCatRef}
-          style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', left: -9999, width: measureCatWidth || undefined }}
-        >
+        <div ref={measureCatRef} style={{
+          position: 'absolute',
+          visibility: 'hidden',
+          pointerEvents: 'none',
+          left: -9999,
+          width: measureCatWidth || undefined
+        }}>
           <PriceChips items={categories.filter(c => !extraCategories.includes(c))} current={null} onClick={() => {}} />
         </div>
         {(() => {
@@ -487,9 +497,7 @@ export default function PhonePrice(props) {
           const hasMore = overflowAll.length > 0;
           const items = hasMore ? [...visiblePrimaryCategories, '更多'] : visiblePrimaryCategories;
           const currentChip = overflowAll.includes(selectedCategory) ? '更多' : selectedCategory;
-          return (
-            <PriceChips items={items} current={currentChip} onClick={handleCategoryClick} activeColor="bg-orange-500 text-white" inactiveColor="bg-orange-100 text-orange-700 hover:bg-orange-200" />
-          );
+          return <PriceChips items={items} current={currentChip} onClick={handleCategoryClick} activeColor="bg-orange-500 text-white" inactiveColor="bg-orange-100 text-orange-700 hover:bg-orange-200" />;
         })()}
       </section>
 
@@ -498,28 +506,23 @@ export default function PhonePrice(props) {
         const primaryCandidates = categories.filter(c => !extraCategories.includes(c));
         const overflowAuto = primaryCandidates.filter(c => !visiblePrimaryCategories.includes(c));
         const overflowAll = [...extraCategories, ...overflowAuto];
-        return (
-          <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreCategories(false)}>
+        return <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreCategories(false)}>
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative mt-24 w-[90vw] max-w-sm bg-white rounded-lg shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
               <div className="p-4 border-b border-gray-100 font-semibold">选择分类</div>
               <div className="p-3 grid grid-cols-2 gap-2">
-                {overflowAll.map(c => (
-                  <button
-                    key={c}
-                    className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-orange-300 hover:text-orange-600 text-gray-700 text-left transition-colors"
-                    onClick={() => { setSelectedCategory(c); setShowMoreCategories(false); }}
-                  >
+                {overflowAll.map(c => <button key={c} className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-orange-300 hover:text-orange-600 text-gray-700 text-left transition-colors" onClick={() => {
+                setSelectedCategory(c);
+                setShowMoreCategories(false);
+              }}>
                     {c}
-                  </button>
-                ))}
+                  </button>)}
               </div>
               <div className="p-3 border-t border-gray-100 text-right">
                 <button className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:border-gray-400 transition-colors" onClick={() => setShowMoreCategories(false)}>取消</button>
               </div>
             </div>
-          </div>
-        );
+          </div>;
       })()}
 
       {/* 搜索区域 */}
