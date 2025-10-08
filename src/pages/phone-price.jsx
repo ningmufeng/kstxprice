@@ -1,5 +1,5 @@
 // @ts-ignore;
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore;
 import { useToast } from '@/components/ui';
 // @ts-ignore;
@@ -19,7 +19,7 @@ export default function PhonePrice(props) {
 
   /* ---------------- 状态 ---------------- */
   const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '三星', '小米', '苹果'];
-  const extraBrands = ['一加', '小度', '小天才', '其它'];
+  const extraBrands = ['苹果', '一加', '小度', '小天才', '其它'];
   const [brands, setBrands] = useState(defaultBrands);
   const [categories] = useState(['手机', '平板', '手表', '耳机']);
   const [selectedBrand, setSelectedBrand] = useState('华为');
@@ -31,6 +31,10 @@ export default function PhonePrice(props) {
   const [queryList, setQueryList] = useState([]);
   const [queryLoading, setQueryLoading] = useState(false);
   const [showMoreBrands, setShowMoreBrands] = useState(false);
+  const [visiblePrimaryBrands, setVisiblePrimaryBrands] = useState([]);
+  const brandsRowRef = useRef(null);
+  const measureRef = useRef(null);
+  const [measureWidth, setMeasureWidth] = useState(0);
 
   /* ---------------- 工具函数 ---------------- */
   const pad2 = n => String(n).padStart(2, '0');
@@ -302,6 +306,49 @@ export default function PhonePrice(props) {
       setSelectedBrand(item);
     }
   };
+  // 计算一行可容纳的主品牌（不含 extraBrands）
+  const computeVisiblePrimaryBrands = () => {
+    const primaryCandidates = brands.filter(b => !extraBrands.includes(b));
+    if (!measureRef.current) {
+      setVisiblePrimaryBrands(primaryCandidates);
+      return;
+    }
+    const buttons = Array.from(measureRef.current.querySelectorAll('button'));
+    if (buttons.length === 0) {
+      setVisiblePrimaryBrands(primaryCandidates);
+      return;
+    }
+    const firstTop = buttons[0].offsetTop;
+    const visible = [];
+    for (let i = 0; i < buttons.length; i += 1) {
+      const btn = buttons[i];
+      if (btn.offsetTop === firstTop) {
+        visible.push(primaryCandidates[i]);
+      } else {
+        break;
+      }
+    }
+    setVisiblePrimaryBrands(visible.length > 0 ? visible : primaryCandidates.slice(0, 1));
+  };
+  // 同步测量宽度并在窗口尺寸变化时重算
+  useEffect(() => {
+    const syncWidthAndCompute = () => {
+      const w = brandsRowRef.current ? brandsRowRef.current.clientWidth : 0;
+      setMeasureWidth(w);
+      Promise.resolve().then(() => computeVisiblePrimaryBrands());
+    };
+    syncWidthAndCompute();
+    const onResize = () => syncWidthAndCompute();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', onResize);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', onResize);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brands]);
   useEffect(() => {
     loadBrands();
   }, []);
@@ -318,29 +365,56 @@ export default function PhonePrice(props) {
     </header>
 
     <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
-      {/* 品牌区域 - 冷色系 */}
-      <section className="bg-slate-100 rounded-lg p-2 shadow-sm">
-        <PriceChips items={[...brands.filter(b => b !== '苹果'), '更多']} current={extraBrands.includes(selectedBrand) ? '更多' : selectedBrand} onClick={handleBrandClick} activeColor="bg-blue-500 text-white" inactiveColor="bg-slate-200 text-slate-700 hover:bg-slate-300" />
+      {/* 品牌区域 - 冷色系（单行显示，溢出折叠到“更多”） */}
+      <section className="bg-slate-100 rounded-lg p-2 shadow-sm" ref={brandsRowRef}>
+        {/* 隐藏测量容器：用于计算一行可容纳的品牌 */}
+        <div
+          ref={measureRef}
+          style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', left: -9999, width: measureWidth || undefined }}
+        >
+          <PriceChips items={brands.filter(b => !extraBrands.includes(b))} current={null} onClick={() => {}} />
+        </div>
+        {(() => {
+          const primaryCandidates = brands.filter(b => !extraBrands.includes(b));
+          const overflowAuto = primaryCandidates.filter(b => !visiblePrimaryBrands.includes(b));
+          const overflowAll = [...extraBrands, ...overflowAuto];
+          const hasMore = overflowAll.length > 0;
+          const items = hasMore ? [...visiblePrimaryBrands, '更多'] : visiblePrimaryBrands;
+          const currentChip = overflowAll.includes(selectedBrand) ? '更多' : selectedBrand;
+          return (
+            <PriceChips items={items} current={currentChip} onClick={handleBrandClick} />
+          );
+        })()}
       </section>
 
-      {/* 更多品牌弹窗 */}
-      {showMoreBrands && <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreBrands(false)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative mt-24 w-[90vw] max-w-sm bg-white rounded-lg shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
-            <div className="p-4 border-b border-gray-100 font-semibold">选择品牌</div>
-            <div className="p-3 grid grid-cols-2 gap-2">
-              {extraBrands.map(b => <button key={b} className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-blue-300 hover:text-blue-500 text-gray-700 text-left transition-colors" onClick={() => {
-              setSelectedBrand(b);
-              setShowMoreBrands(false);
-            }}>
-                  {b}
-                </button>)}
-            </div>
-            <div className="p-3 border-t border-gray-100 text-right">
-              <button className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:border-gray-400 transition-colors" onClick={() => setShowMoreBrands(false)}>取消</button>
+      {/* 更多品牌弹窗（包含固定更多品牌 + 自动溢出品牌） */}
+      {showMoreBrands && (() => {
+        const primaryCandidates = brands.filter(b => !extraBrands.includes(b));
+        const overflowAuto = primaryCandidates.filter(b => !visiblePrimaryBrands.includes(b));
+        const overflowAll = [...extraBrands, ...overflowAuto];
+        return (
+          <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreBrands(false)}>
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="relative mt-24 w-[90vw] max-w-sm bg-white rounded-lg shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
+              <div className="p-4 border-b border-gray-100 font-semibold">选择品牌</div>
+              <div className="p-3 grid grid-cols-2 gap-2">
+                {overflowAll.map(b => (
+                  <button
+                    key={b}
+                    className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-blue-300 hover:text-blue-500 text-gray-700 text-left transition-colors"
+                    onClick={() => { setSelectedBrand(b); setShowMoreBrands(false); }}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+              <div className="p-3 border-t border-gray-100 text-right">
+                <button className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:border-gray-400 transition-colors" onClick={() => setShowMoreBrands(false)}>取消</button>
+              </div>
             </div>
           </div>
-        </div>}
+        );
+      })()}
 
       {/* 分类区域 - 暖色系 */}
       <section className="bg-orange-50 rounded-lg p-2 shadow-sm">
