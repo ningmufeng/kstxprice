@@ -422,13 +422,11 @@ export default function PhonePrice(props) {
         <h1 className="text-[22px] sm:text-2xl font-semibold tracking-wide text-center">
           石家庄旷世唐朵通讯报价单
         </h1>
-        <div className="mt-1">
-          <span className="inline-block text-xs sm:text-sm text-white/90 bg-white/10 px-2.5 py-1 rounded-full ring-1 ring-white/20">
+        <div className="mt-1 flex items-center gap-2 text-xs sm:text-sm text-white/90">
+          <span className="inline-block bg-white/10 px-2.5 py-1 rounded-full ring-1 ring-white/20">
             {formattedDate}
           </span>
-        </div>
-        <div className="mt-1 text-xs sm:text-sm text-white/90">
-          地址：石家庄太和电子城5F65号
+          <span>太和电子城5F65号</span>
         </div>
       </div>
     </header>
