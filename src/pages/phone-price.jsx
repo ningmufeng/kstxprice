@@ -418,16 +418,13 @@ export default function PhonePrice(props) {
   const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
   return <div style={style} className={`min-h-screen bg-gray-50 flex flex-col ${className || ''}`}>
     <header className="sticky top-0 z-10 text-white shadow-md bg-gradient-to-r from-blue-600 to-blue-700 border-b border-blue-900/20">
-      <div className="max-w-4xl mx-auto px-3 py-3 flex flex-col items-center">
-        <h1 className="text-[22px] sm:text-2xl font-semibold tracking-wide text-center">
+      <div className="max-w-4xl mx-auto px-3 py-3 flex items-center justify-center gap-2">
+        <h1 className="text-[22px] sm:text-2xl font-semibold tracking-wide">
           石家庄旷世唐朵通讯报价单
         </h1>
-        <div className="mt-1 flex items-center gap-2 text-xs sm:text-sm text-white/90">
-          <span className="inline-block bg-white/10 px-2.5 py-1 rounded-full ring-1 ring-white/20">
-            {formattedDate}
-          </span>
-          <span>太和电子城5F65号</span>
-        </div>
+        <span className="inline-block text-xs sm:text-sm text-white/90 bg-white/10 px-2.5 py-1 rounded-full ring-1 ring-white/20">
+          {formattedDate}
+        </span>
       </div>
     </header>
 
