@@ -30,6 +30,7 @@ export default function PhonePrice(props) {
   const [queryModel, setQueryModel] = useState('');
   const [queryList, setQueryList] = useState([]);
   const [queryLoading, setQueryLoading] = useState(false);
+  const [showMoreBrands, setShowMoreBrands] = useState(false);
 
   /* ---------------- 工具函数 ---------------- */
   const pad2 = n => String(n).padStart(2, '0');
@@ -290,6 +291,13 @@ export default function PhonePrice(props) {
       setQueryLoading(false);
     }
   };
+  const handleBrandClick = (item) => {
+    if (item === '更多') {
+      setShowMoreBrands(true);
+    } else {
+      setSelectedBrand(item);
+    }
+  };
   useEffect(() => {
     loadBrands();
   }, []);
@@ -309,11 +317,34 @@ export default function PhonePrice(props) {
       {/* 品牌行 - 浅灰背景 */}
       <section className="bg-gray-100 rounded-lg p-2 shadow-sm">
         <PriceChips
-          items={[...brands, ...extraBrands.filter(b => !brands.includes(b))]}
-          current={selectedBrand}
-          onClick={setSelectedBrand}
+          items={[...brands, '更多']}
+          current={extraBrands.includes(selectedBrand) ? '更多' : selectedBrand}
+          onClick={handleBrandClick}
         />
       </section>
+
+      {showMoreBrands && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreBrands(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative mt-24 w-[90vw] max-w-sm bg-white rounded-lg shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-100 font-semibold">选择品牌</div>
+            <div className="p-3 grid grid-cols-2 gap-2">
+              {extraBrands.map(b => (
+                <button
+                  key={b}
+                  className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-red-300 hover:text-red-500 text-gray-700 text-left"
+                  onClick={() => { setSelectedBrand(b); setShowMoreBrands(false); }}
+                >
+                  {b}
+                </button>
+              ))}
+            </div>
+            <div className="p-3 border-t border-gray-100 text-right">
+              <button className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:border-gray-400" onClick={() => setShowMoreBrands(false)}>取消</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 分类行 - 白色背景 */}
       <section className="bg-white rounded-lg p-2 shadow-sm">
