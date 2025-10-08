@@ -20,8 +20,8 @@ export default function PhonePrice(props) {
   /* ---------------- 状态 ---------------- */
   const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '三星', '小米', '苹果'];
   const extraBrands = ['一加', '小度', '小天才', '其它'];
-  const defaultCategories = ['手机', '平板', '手表', '耳机'];
-  const extraCategories = ['手环', '笔记本电脑', '学习机', '充电器', '路由器', '摄像头', '台灯', '其它'];
+  const defaultCategories = ['手机', '平板', '手表', '耳机', '手环', '笔记本电脑', '学习机'];
+  const extraCategories = ['充电器', '路由器', '摄像头', '台灯', '其它'];
   const [brands, setBrands] = useState(defaultBrands);
   const [categories] = useState(defaultCategories);
   const [selectedBrand, setSelectedBrand] = useState('华为');
