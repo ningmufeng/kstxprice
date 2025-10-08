@@ -418,11 +418,11 @@ export default function PhonePrice(props) {
   const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
   return <div style={style} className={`min-h-screen bg-gray-50 flex flex-col ${className || ''}`}>
     <header className="sticky top-0 z-10 text-white shadow-md bg-gradient-to-r from-blue-600 to-blue-700 border-b border-blue-900/20">
-      <div className="max-w-4xl mx-auto px-3 py-3 flex items-center justify-center gap-2">
-        <h1 className="text-[22px] sm:text-2xl font-semibold tracking-wide">
+      <div className="max-w-4xl mx-auto px-3 py-3 flex items-center justify-center gap-2 sm:gap-3 min-w-0">
+        <h1 className="flex-1 text-center whitespace-nowrap text-[clamp(16px,4.5vw,22px)] font-semibold tracking-wide">
           石家庄旷世唐朵通讯报价单
         </h1>
-        <span className="inline-block text-xs sm:text-sm text-white/90 bg-white/10 px-2.5 py-1 rounded-full ring-1 ring-white/20">
+        <span className="shrink-0 inline-block text-[11px] sm:text-sm text-white/90 bg-white/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full ring-1 ring-white/20 whitespace-nowrap">
           {formattedDate}
         </span>
       </div>
