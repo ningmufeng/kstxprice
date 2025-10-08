@@ -418,7 +418,7 @@ export default function PhonePrice(props) {
   const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
   return <div style={style} className={`min-h-screen bg-gray-50 flex flex-col ${className || ''}`}>
     <header className="bg-blue-600 text-white p-4 sticky top-0 z-10 shadow-md">
-      <h1 className="text-2xl font-bold text-center">
+      <h1 className="text-1xl font-bold text-center">
         石家庄旷世唐朵通讯报价单 {formattedDate}
       </h1>
     </header>
