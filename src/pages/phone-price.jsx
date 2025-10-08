@@ -427,6 +427,9 @@ export default function PhonePrice(props) {
             {formattedDate}
           </span>
         </div>
+        <div className="mt-1 text-xs sm:text-sm text-white/90">
+          地址：石家庄太和电子城5F65号
+        </div>
       </div>
     </header>
 
