@@ -18,7 +18,7 @@ export default function PhonePrice(props) {
   } = useToast();
 
   /* ---------------- 状态 ---------------- */
-  const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '三星', '小米', '苹果'];
+  const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '小米', '三星', '苹果'];
   const [brands, setBrands] = useState(defaultBrands);
   const [categories] = useState(['手机', '平板', '手表', '耳机']);
   const [selectedBrand, setSelectedBrand] = useState('华为');
@@ -294,60 +294,60 @@ export default function PhonePrice(props) {
   const currentDate = new Date();
   const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
   return <div style={style} className={`min-h-screen bg-gray-50 flex flex-col ${className || ''}`}>
-      <header className="bg-blue-600 text-white p-4 sticky top-0 z-10 shadow-md">
-        <h1 className="text-lg font-bold text-center">
-          石家庄旷世唐朵通讯报价单 {formattedDate}
-        </h1>
-      </header>
+    <header className="bg-blue-600 text-white p-4 sticky top-0 z-10 shadow-md">
+      <h1 className="text-lg font-bold text-center">
+        石家庄旷世唐朵通讯报价单 {formattedDate}
+      </h1>
+    </header>
 
-      <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
-        {/* 品牌行 - 浅灰背景 */}
-        <section className="bg-gray-100 rounded-lg p-2 shadow-sm">
-          <PriceChips items={brands} current={selectedBrand} onClick={setSelectedBrand} />
-        </section>
+    <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
+      {/* 品牌行 - 浅灰背景 */}
+      <section className="bg-gray-100 rounded-lg p-2 shadow-sm">
+        <PriceChips items={brands} current={selectedBrand} onClick={setSelectedBrand} />
+      </section>
 
-        {/* 分类行 - 白色背景 */}
-        <section className="bg-white rounded-lg p-2 shadow-sm">
-          <PriceChips items={categories} current={selectedCategory} onClick={setSelectedCategory} />
-        </section>
+      {/* 分类行 - 白色背景 */}
+      <section className="bg-white rounded-lg p-2 shadow-sm">
+        <PriceChips items={categories} current={selectedCategory} onClick={setSelectedCategory} />
+      </section>
 
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex gap-2 items-end">
-            <input type="text" placeholder="型号关键词" value={queryModel} onChange={e => setQueryModel(e.target.value)} onKeyDown={e => {
+      <section className="bg-white rounded-lg p-4 shadow-sm">
+        <div className="flex gap-2 items-end">
+          <input type="text" placeholder="型号关键词" value={queryModel} onChange={e => setQueryModel(e.target.value)} onKeyDown={e => {
             if (e.key === 'Enter') {
               e.preventDefault();
               if (!queryLoading) loadLatestRecord();
             }
           }} className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-xs" />
-            <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1 disabled:opacity-50">
-              <Search size={12} />
-              {queryLoading ? '查询' : '查询'}
-            </button>
-            <a href="tel:031185209160" className="bg-green-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1">
-              <Phone size={12} />
-              电询
-            </a>
-          </div>
-        </section>
-
-        {queryList.length > 0 && <section className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="text-sm font-medium text-gray-700 mb-2">
-              查询结果（{queryList.length} 条）
-            </div>
-            <PriceTable data={queryList} loading={false} />
-          </section>}
-
-        {lastUpdate && <div className="text-sm text-gray-600 px-2">
-            {selectedBrand} {selectedCategory} 最后更新: {lastUpdate}
-          </div>}
-
-        <PriceTable data={priceData} loading={loading} className="mt-2" />
-      </main>
-
-      <footer className="bg-white border-t border-gray-200 p-4 mt-auto">
-        <div className="text-center text-sm text-gray-500">
-          数据存储: CloudBase · 演示模板
+          <button onClick={loadLatestRecord} disabled={queryLoading} className="bg-blue-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1 disabled:opacity-50">
+            <Search size={12} />
+            {queryLoading ? '查询' : '查询'}
+          </button>
+          <a href="tel:031185209160" className="bg-green-600 text-white px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1">
+            <Phone size={12} />
+            电询
+          </a>
         </div>
-      </footer>
-    </div>;
+      </section>
+
+      {queryList.length > 0 && <section className="bg-white rounded-lg p-4 shadow-sm">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          查询结果（{queryList.length} 条）
+        </div>
+        <PriceTable data={queryList} loading={false} />
+      </section>}
+
+      {lastUpdate && <div className="text-sm text-gray-600 px-2">
+        {selectedBrand} {selectedCategory} 最后更新: {lastUpdate}
+      </div>}
+
+      <PriceTable data={priceData} loading={loading} className="mt-2" />
+    </main>
+
+    <footer className="bg-white border-t border-gray-200 p-4 mt-auto">
+      <div className="text-center text-sm text-gray-500">
+        数据存储: CloudBase · 演示模板
+      </div>
+    </footer>
+  </div>;
 }
