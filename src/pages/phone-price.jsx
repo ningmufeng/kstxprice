@@ -18,7 +18,8 @@ export default function PhonePrice(props) {
   } = useToast();
 
   /* ---------------- 状态 ---------------- */
-  const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '小米', '三星', '苹果'];
+  const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '三星', '小米', '苹果'];
+  const extraBrands = ['一加', '小度', '小天才', '其它'];
   const [brands, setBrands] = useState(defaultBrands);
   const [categories] = useState(['手机', '平板', '手表', '耳机']);
   const [selectedBrand, setSelectedBrand] = useState('华为');
@@ -152,11 +153,15 @@ export default function PhonePrice(props) {
     if (!selectedBrand || !selectedCategory) return;
     setLoading(true);
     try {
-      const brandFilter = selectedBrand.toLowerCase() === 'vivo' ? {
-        $in: vivoSynonyms
-      } : {
-        $eq: selectedBrand
-      };
+      let brandFilter;
+      if (selectedBrand === '其它') {
+        // 选择“其它”：展示非默认品牌集合
+        brandFilter = { $nin: defaultBrands };
+      } else if (selectedBrand && selectedBrand.toLowerCase() === 'vivo') {
+        brandFilter = { $in: vivoSynonyms };
+      } else {
+        brandFilter = { $eq: selectedBrand };
+      }
       const result = await $w.cloud.callDataSource({
         dataSourceName: 'PhonePrice',
         methodName: 'wedaGetRecordsV2',
@@ -303,7 +308,11 @@ export default function PhonePrice(props) {
     <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
       {/* 品牌行 - 浅灰背景 */}
       <section className="bg-gray-100 rounded-lg p-2 shadow-sm">
-        <PriceChips items={brands} current={selectedBrand} onClick={setSelectedBrand} />
+        <PriceChips
+          items={[...brands, ...extraBrands.filter(b => !brands.includes(b))]}
+          current={selectedBrand}
+          onClick={setSelectedBrand}
+        />
       </section>
 
       {/* 分类行 - 白色背景 */}
