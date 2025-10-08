@@ -423,8 +423,7 @@ export default function PhonePrice(props) {
   return <div style={style} className={`min-h-screen bg-gray-50 flex flex-col ${className || ''}`}>
     <header className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-16 flex items-center px-4 shadow-md rounded-b-xl">
       <div className="max-w-4xl mx-auto flex items-center w-full">
-        <Phone size={24} />
-        <h1 className="text-xl font-bold ml-3">
+        <h1 className="text-xl font-bold">
           石家庄旷世唐朵通讯报价单 {formattedDate}
         </h1>
       </div>
