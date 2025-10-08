@@ -421,9 +421,9 @@ export default function PhonePrice(props) {
   const currentDate = new Date();
   const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
   return <div style={style} className={`min-h-screen bg-gray-50 flex flex-col ${className || ''}`}>
-    <header className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-16 flex items-center px-4 shadow-md rounded-b-xl">
+    <header className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-14 flex items-center px-3 shadow-md rounded-b-xl">
       <div className="max-w-4xl mx-auto flex items-center w-full">
-        <h1 className="text-xl font-bold">
+        <h1 className="text-base font-bold">
           石家庄旷世唐朵通讯报价单 {formattedDate}
         </h1>
       </div>
