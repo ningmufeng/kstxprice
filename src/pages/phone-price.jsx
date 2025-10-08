@@ -19,7 +19,7 @@ export default function PhonePrice(props) {
 
   /* ---------------- 状态 ---------------- */
   const defaultBrands = ['华为', '荣耀', 'OPPO', 'vivo', '三星', '小米', '苹果'];
-  const extraBrands = ['苹果', '一加', '小度', '小天才', '其它'];
+  const extraBrands = ['一加', '小度', '小天才', '其它'];
   const [brands, setBrands] = useState(defaultBrands);
   const [categories] = useState(['手机', '平板', '手表', '耳机']);
   const [selectedBrand, setSelectedBrand] = useState('华为');
@@ -366,12 +366,15 @@ export default function PhonePrice(props) {
 
     <main className="flex-1 p-4 space-y-2 max-w-4xl mx-auto w-full">
       {/* 品牌区域 - 冷色系（单行显示，溢出折叠到“更多”） */}
-      <section className="bg-slate-100 rounded-lg p-2 shadow-sm" ref={brandsRowRef}>
+      <section className="bg-slate-50 rounded-md py-1 px-1.5 shadow-sm" ref={brandsRowRef}>
         {/* 隐藏测量容器：用于计算一行可容纳的品牌 */}
-        <div
-          ref={measureRef}
-          style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', left: -9999, width: measureWidth || undefined }}
-        >
+        <div ref={measureRef} style={{
+          position: 'absolute',
+          visibility: 'hidden',
+          pointerEvents: 'none',
+          left: -9999,
+          width: measureWidth || undefined
+        }}>
           <PriceChips items={brands.filter(b => !extraBrands.includes(b))} current={null} onClick={() => {}} />
         </div>
         {(() => {
@@ -381,9 +384,7 @@ export default function PhonePrice(props) {
           const hasMore = overflowAll.length > 0;
           const items = hasMore ? [...visiblePrimaryBrands, '更多'] : visiblePrimaryBrands;
           const currentChip = overflowAll.includes(selectedBrand) ? '更多' : selectedBrand;
-          return (
-            <PriceChips items={items} current={currentChip} onClick={handleBrandClick} />
-          );
+          return <PriceChips items={items} current={currentChip} onClick={handleBrandClick} activeColor="bg-blue-500 text-white" inactiveColor="bg-slate-100 text-slate-700 hover:bg-slate-200" />;
         })()}
       </section>
 
@@ -392,32 +393,27 @@ export default function PhonePrice(props) {
         const primaryCandidates = brands.filter(b => !extraBrands.includes(b));
         const overflowAuto = primaryCandidates.filter(b => !visiblePrimaryBrands.includes(b));
         const overflowAll = [...extraBrands, ...overflowAuto];
-        return (
-          <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreBrands(false)}>
+        return <div className="fixed inset-0 z-50 flex items-start justify-center" onClick={() => setShowMoreBrands(false)}>
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative mt-24 w-[90vw] max-w-sm bg-white rounded-lg shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
               <div className="p-4 border-b border-gray-100 font-semibold">选择品牌</div>
               <div className="p-3 grid grid-cols-2 gap-2">
-                {overflowAll.map(b => (
-                  <button
-                    key={b}
-                    className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-blue-300 hover:text-blue-500 text-gray-700 text-left transition-colors"
-                    onClick={() => { setSelectedBrand(b); setShowMoreBrands(false); }}
-                  >
+                {overflowAll.map(b => <button key={b} className="px-3 py-2 rounded-md text-sm border border-gray-300 hover:border-blue-300 hover:text-blue-500 text-gray-700 text-left transition-colors" onClick={() => {
+                setSelectedBrand(b);
+                setShowMoreBrands(false);
+              }}>
                     {b}
-                  </button>
-                ))}
+                  </button>)}
               </div>
               <div className="p-3 border-t border-gray-100 text-right">
                 <button className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:border-gray-400 transition-colors" onClick={() => setShowMoreBrands(false)}>取消</button>
               </div>
             </div>
-          </div>
-        );
+          </div>;
       })()}
 
       {/* 分类区域 - 暖色系 */}
-      <section className="bg-orange-50 rounded-lg p-2 shadow-sm">
+      <section className="bg-orange-50 rounded-md py-1 px-1.5 shadow-sm">
         <PriceChips items={categories} current={selectedCategory} onClick={setSelectedCategory} activeColor="bg-orange-500 text-white" inactiveColor="bg-orange-100 text-orange-700 hover:bg-orange-200" />
       </section>
 
